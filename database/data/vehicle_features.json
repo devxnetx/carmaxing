@@ -1,0 +1,103 @@
+{
+  "categories": [
+    {"slug": "safety", "name_bg": "Безопасност", "name_en": "Safety"},
+    {"slug": "comfort", "name_bg": "Комфорт", "name_en": "Comfort"},
+    {"slug": "exterior", "name_bg": "Екстериор", "name_en": "Exterior"},
+    {"slug": "interior", "name_bg": "Интериор", "name_en": "Interior"},
+    {"slug": "special", "name_bg": "Специализирани", "name_en": "Specialized"},
+    {"slug": "other", "name_bg": "Други", "name_en": "Other"}
+  ],
+  "features": {
+    "safety": [
+      {"slug": "gps-tracking", "name_bg": "GPS система за проследяване", "name_en": "GPS tracking system"},
+      {"slug": "adaptive-cruise", "name_bg": "Адаптивно темпомат", "name_en": "Adaptive cruise control"},
+      {"slug": "autopilot", "name_bg": "Автопилот", "name_en": "Autopilot"},
+      {"slug": "airbags-front", "name_bg": "Въздушни възглавници - Предни", "name_en": "Front airbags"},
+      {"slug": "airbags-side", "name_bg": "Въздушни възглавници - Странични", "name_en": "Side airbags"},
+      {"slug": "airbags-curtain", "name_bg": "Въздушни възглавници - Задни", "name_en": "Curtain airbags"},
+      {"slug": "abs", "name_bg": "Антиблокираща система", "name_en": "ABS"},
+      {"slug": "esp", "name_bg": "Електронна програма за стабилност", "name_en": "ESP"},
+      {"slug": "brake-assist", "name_bg": "Система за подпомагане на спирането", "name_en": "Brake assist"},
+      {"slug": "traction-control", "name_bg": "Контрол на налягането на гумите", "name_en": "Traction control"},
+      {"slug": "isofix", "name_bg": "Система ISOFIX", "name_en": "ISOFIX"},
+      {"slug": "blind-spot", "name_bg": "Система за контрол на мъртвата точка", "name_en": "Blind spot monitoring"},
+      {"slug": "lane-assist", "name_bg": "Система за контрол на лентата", "name_en": "Lane assist"},
+      {"slug": "park-assist", "name_bg": "Система за изход от паркинг", "name_en": "Park assist"},
+      {"slug": "hill-assist", "name_bg": "Система за контрол при спускане", "name_en": "Hill descent control"}
+    ],
+    "comfort": [
+      {"slug": "360-camera", "name_bg": "360 camera / Камера 360°", "name_en": "360° camera"},
+      {"slug": "carplay-android", "name_bg": "Apple CarPlay / Android Auto", "name_en": "Apple CarPlay / Android Auto"},
+      {"slug": "auto-start-stop", "name_bg": "Auto Start Stop function", "name_en": "Auto start-stop"},
+      {"slug": "bluetooth", "name_bg": "Bluetooth / handsfree система", "name_en": "Bluetooth / handsfree"},
+      {"slug": "dvd-tv", "name_bg": "DVD, TV", "name_en": "DVD, TV"},
+      {"slug": "head-up-display", "name_bg": "Head up display", "name_en": "Head-up display"},
+      {"slug": "steptronic", "name_bg": "Steptronic, Tiptronic", "name_en": "Steptronic / Tiptronic"},
+      {"slug": "usb-aux", "name_bg": "USB, audio/video, IN/AUX изходи", "name_en": "USB, AUX inputs"},
+      {"slug": "adaptive-suspension", "name_bg": "Адаптивно окачване", "name_en": "Adaptive suspension"},
+      {"slug": "keyless", "name_bg": "Безключово заключване", "name_en": "Keyless entry"},
+      {"slug": "heated-seats", "name_bg": "Отопление на седалките", "name_en": "Heated seats"},
+      {"slug": "ventilated-seats", "name_bg": "Вентилирани седалки", "name_en": "Ventilated seats"},
+      {"slug": "massage-seats", "name_bg": "Масаж на седалките", "name_en": "Massage seats"},
+      {"slug": "electric-seats", "name_bg": "Ел. регулиране на седалките", "name_en": "Electric seat adjustment"},
+      {"slug": "electric-mirrors", "name_bg": "Ел. регулиране на огледалата", "name_en": "Electric mirrors"},
+      {"slug": "electric-windows", "name_bg": "Ел. регулиране на стъклата", "name_en": "Electric windows"},
+      {"slug": "electric-trunk", "name_bg": "Ел. регулиране на волана", "name_en": "Electric steering adjustment"},
+      {"slug": "navigation", "name_bg": "Навигация", "name_en": "Navigation"},
+      {"slug": "climate-control", "name_bg": "Климатик", "name_en": "Climate control"},
+      {"slug": "multi-zone-climate", "name_bg": "Климатроник", "name_en": "Multi-zone climate"},
+      {"slug": "rain-sensor", "name_bg": "Сензор за дъжд", "name_en": "Rain sensor"},
+      {"slug": "light-sensor", "name_bg": "Сензор за светлина", "name_en": "Light sensor"},
+      {"slug": "cruise-control", "name_bg": "Круиз контрол", "name_en": "Cruise control"},
+      {"slug": "heated-steering", "name_bg": "Отопление на волана", "name_en": "Heated steering wheel"},
+      {"slug": "heated-mirrors", "name_bg": "Отопление на огледалата", "name_en": "Heated mirrors"},
+      {"slug": "heated-windshield", "name_bg": "Отопление на предното стъкло", "name_en": "Heated windshield"},
+      {"slug": "parking-sensors", "name_bg": "Парктроник", "name_en": "Parking sensors"},
+      {"slug": "rear-camera", "name_bg": "Камера за паркиране", "name_en": "Rear parking camera"},
+      {"slug": "leather-interior", "name_bg": "Кожен салон", "name_en": "Leather interior"}
+    ],
+    "exterior": [
+      {"slug": "4x4", "name_bg": "4x4", "name_en": "4x4"},
+      {"slug": "7-seats", "name_bg": "7 места", "name_en": "7 seats"},
+      {"slug": "buy-back", "name_bg": "Buy back", "name_en": "Buy back"},
+      {"slug": "damaged", "name_bg": "Бавария", "name_en": "Damaged / import"},
+      {"slug": "metallic-paint", "name_bg": "Металик", "name_en": "Metallic paint"},
+      {"slug": "new-import", "name_bg": "Нов внос", "name_en": "New import"},
+      {"slug": "service-book", "name_bg": "Сервизна книжка", "name_en": "Service book"},
+      {"slug": "warranty", "name_bg": "Гаранция", "name_en": "Warranty"},
+      {"slug": "full-service", "name_bg": "Пълна сервизна история", "name_en": "Full service history"},
+      {"slug": "non-smoker", "name_bg": "Непушач", "name_en": "Non-smoker"},
+      {"slug": "exchange", "name_bg": "Бартер", "name_en": "Exchange / trade-in"},
+      {"slug": "leasing", "name_bg": "Лизинг", "name_en": "Leasing"},
+      {"slug": "registered", "name_bg": "Регистриран", "name_en": "Registered"},
+      {"slug": "with-vat", "name_bg": "С ДДС", "name_en": "VAT deductible"}
+    ],
+    "interior": [
+      {"slug": "led-lights", "name_bg": "LED фарове", "name_en": "LED headlights"},
+      {"slug": "xenon", "name_bg": "Ксенонови фарове", "name_en": "Xenon headlights"},
+      {"slug": "fog-lights", "name_bg": "Фарове за мъгла", "name_en": "Fog lights"},
+      {"slug": "alloy-wheels", "name_bg": "Лети джанти", "name_en": "Alloy wheels"},
+      {"slug": "sunroof", "name_bg": "Шибедах", "name_en": "Sunroof"},
+      {"slug": "panorama", "name_bg": "Панорамен люк", "name_en": "Panoramic roof"},
+      {"slug": "tow-hook", "name_bg": "Теглич", "name_en": "Tow hook"},
+      {"slug": "roof-rails", "name_bg": "Рейлинги", "name_en": "Roof rails"},
+      {"slug": "spoiler", "name_bg": "Спойлер", "name_en": "Spoiler"},
+      {"slug": "body-kit", "name_bg": "Тунинг пакет", "name_en": "Body kit"}
+    ],
+    "special": [
+      {"slug": "offroad", "name_bg": "OFFROAD пакет", "name_en": "Off-road package"},
+      {"slug": "sport", "name_bg": "Спортен", "name_en": "Sport package"},
+      {"slug": "cabrio", "name_bg": "Кабрио", "name_en": "Convertible"},
+      {"slug": "van", "name_bg": "Ван", "name_en": "Van"},
+      {"slug": "long-base", "name_bg": "Удължена база", "name_en": "Long wheelbase"}
+    ],
+    "other": [
+      {"slug": "taxi", "name_bg": "TAXI", "name_en": "Taxi"},
+      {"slug": "driving-school", "name_bg": "Учебен автомобил", "name_en": "Driving school car"},
+      {"slug": "disabled", "name_bg": "За инвалиди", "name_en": "Disabled accessible"},
+      {"slug": "armored", "name_bg": "Брониран", "name_en": "Armored"},
+      {"slug": "ambulance", "name_bg": "Линейка", "name_en": "Ambulance"},
+      {"slug": "n1-category", "name_bg": "Категория N1", "name_en": "N1 category"}
+    ]
+  }
+}

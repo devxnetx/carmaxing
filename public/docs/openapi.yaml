@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: CARMAXING Dealer API
+  version: 1.0.0
+  description: API for car dealers to sync listings with CARMAXING.
+servers:
+  - url: /api/v1
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+paths:
+  /catalog:
+    get:
+      summary: Get catalog data
+      tags: [Catalog]
+      responses:
+        '200':
+          description: Brands, models, enums
+  /listings:
+    get:
+      summary: List company listings
+      tags: [Listings]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, archived, sold]
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated listings
+    post:
+      summary: Create listing
+      tags: [Listings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingInput'
+      responses:
+        '201':
+          description: Created
+        '409':
+          description: external_id already exists
+  /listings/{id}:
+    get:
+      summary: Get listing
+      tags: [Listings]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Listing detail
+    put:
+      summary: Update listing
+      tags: [Listings]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingInput'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      summary: Archive listing
+      tags: [Listings]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Archived
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ListingInput:
+      type: object
+      required: [brand_id, model_id, title, price, year]
+      properties:
+        external_id:
+          type: string
+        brand_id:
+          type: integer
+        model_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        currency:
+          type: string
+          enum: [EUR, BGN, USD]
+        year:
+          type: integer
+        mileage:
+          type: integer
+        fuel_type:
+          type: string
+        feature_ids:
+          type: array
+          items:
+            type: integer
