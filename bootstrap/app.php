@@ -40,33 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $forceShowErrors = filter_var(env('FORCE_SHOW_ERRORS', true), FILTER_VALIDATE_BOOLEAN);
-
-        if ($forceShowErrors) {
-            config(['app.debug' => true]);
-        }
-
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') && ! $forceShowErrors,
+            fn (Request $request) => $request->is('api/*'),
         );
-
-        $exceptions->render(function (\Throwable $e, Request $request) use ($forceShowErrors) {
-            if (! $forceShowErrors) {
-                return null;
-            }
-
-            config(['app.debug' => true]);
-
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'message' => $e->getMessage(),
-                    'exception' => $e::class,
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => collect($e->getTrace())->take(20)->all(),
-                ], 500);
-            }
-
-            return null;
-        });
     })->create();

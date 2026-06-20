@@ -16,9 +16,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        if (filter_var(env('FORCE_SHOW_ERRORS', true), FILTER_VALIDATE_BOOLEAN)) {
-            config(['app.debug' => true]);
-        }
+        //
     }
 
     public function boot(): void
