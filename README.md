@@ -96,6 +96,27 @@ resources/views/   Blade + Alpine.js + Tailwind 4
 routes/api.php     Dealer API v1
 ```
 
+## Laravel Cloud deploy
+
+`public/build` is committed so deploys work even before frontend build commands are configured. For the proper setup, add these **Build commands** in your environment → Settings → Deployments:
+
+```bash
+composer install --no-dev
+npm ci
+npm run build
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+**Deploy commands:**
+
+```bash
+php artisan migrate --force
+```
+
+After that works, you can add `/public/build` back to `.gitignore` and let Cloud build assets on each deploy.
+
 ## Performance & SEO
 
 - System font stack (no webfont downloads)
