@@ -16,6 +16,7 @@ class TenderAnonymousBidHistory
         return $tender->bids()
             ->selectRaw('user_id, MIN(created_at) as first_bid_at')
             ->groupBy('user_id')
+            ->reorder()
             ->orderBy('first_bid_at')
             ->pluck('user_id')
             ->values()
