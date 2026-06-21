@@ -11,7 +11,6 @@ return [
     'nav_reports' => 'Reports',
     'nav_api_keys' => 'API keys',
     'nav_imports' => 'Imports',
-    'nav_horizon' => 'Queues',
     'nav_pulse' => 'Pulse',
     'actions' => 'Actions',
     'cancel_import' => 'Cancel',

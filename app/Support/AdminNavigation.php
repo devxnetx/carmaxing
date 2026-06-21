@@ -40,18 +40,6 @@ class AdminNavigation
     {
         $items = [];
 
-        if (class_exists(\Laravel\Horizon\Horizon::class)) {
-            $path = trim(config('horizon.path', 'horizon'), '/');
-
-            $items[] = [
-                'url' => url('/'.$path),
-                'path' => $path,
-                'label' => __('admin.nav_horizon'),
-                'icon' => 'list',
-                'external' => true,
-            ];
-        }
-
         if (class_exists(\Laravel\Pulse\Pulse::class)) {
             $path = trim(config('pulse.path', 'pulse'), '/');
 

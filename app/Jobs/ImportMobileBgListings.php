@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\MobileBgImportRun;
 use App\Services\MobileBg\MobileBgImporter;
+use App\Support\ManagedQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -19,7 +20,7 @@ class ImportMobileBgListings implements ShouldQueue
         public MobileBgImportRun $run,
         public bool $syncImages = true,
     ) {
-        $this->onQueue('imports');
+        $this->onQueue(ManagedQueue::NAME);
     }
 
     public function handle(MobileBgImporter $importer): void

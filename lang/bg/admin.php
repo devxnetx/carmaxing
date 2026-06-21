@@ -11,7 +11,6 @@ return [
     'nav_reports' => 'Сигнали',
     'nav_api_keys' => 'API ключове',
     'nav_imports' => 'Импорти',
-    'nav_horizon' => 'Опашки',
     'nav_pulse' => 'Pulse',
     'actions' => 'Действия',
     'cancel_import' => 'Отмени',
