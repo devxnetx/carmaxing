@@ -36,19 +36,22 @@ class ReprocessListingImages extends Command
                         continue;
                     }
 
-                    $absolute = Storage::disk('public')->path($image->path);
+                    $disk = Storage::disk('public');
 
-                    if (! is_file($absolute)) {
+                    if (! $disk->exists($image->path)) {
                         $failed++;
                         $this->warn("Missing file: {$image->path}");
 
                         continue;
                     }
 
+                    $temp = tempnam(sys_get_temp_dir(), 'img');
+                    file_put_contents($temp, $disk->get($image->path));
+
                     try {
                         $oldPaths = [$image->path, $image->path_medium, $image->path_thumb];
                         $directory = "listings/{$image->listing_id}";
-                        $result = $processor->processPath($absolute, $directory, $variants);
+                        $result = $processor->processPath($temp, $directory, $variants);
 
                         $image->update([
                             'path' => $result['path'],
@@ -64,6 +67,8 @@ class ReprocessListingImages extends Command
                     } catch (\Throwable $e) {
                         $failed++;
                         $this->warn("Image #{$image->id}: {$e->getMessage()}");
+                    } finally {
+                        @unlink($temp);
                     }
                 }
             });

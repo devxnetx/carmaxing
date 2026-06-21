@@ -73,13 +73,8 @@ class ImageProcessor
         $disk = Storage::disk('public');
         $disk->makeDirectory($directory);
         $relative = "{$directory}/".Str::uuid()->toString().'.webp';
-        $absolute = $disk->path($relative);
 
-        if (! imagewebp($resized, $absolute, $config['quality'])) {
-            imagedestroy($resized);
-            throw new RuntimeException('Failed to encode image.');
-        }
-
+        $this->storeWebp($disk, $relative, $resized, $config['quality']);
         imagedestroy($resized);
 
         return $relative;
@@ -160,12 +155,8 @@ class ImageProcessor
         foreach ($variants as $name => $config) {
             $resized = $this->resizeToMax($source, $originalWidth, $originalHeight, $config['max']);
             $relative = "{$directory}/{$basename}_{$name}.webp";
-            $absolute = $disk->path($relative);
 
-            if (! imagewebp($resized, $absolute, $config['quality'])) {
-                imagedestroy($resized);
-                throw new RuntimeException("Failed to encode {$name} variant.");
-            }
+            $this->storeWebp($disk, $relative, $resized, $config['quality']);
 
             if ($name === 'large') {
                 $largeWidth = imagesx($resized);
@@ -209,6 +200,21 @@ class ImageProcessor
         imagecopyresampled($canvas, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
 
         return $canvas;
+    }
+
+    private function storeWebp($disk, string $relative, \GdImage $image, int $quality): void
+    {
+        $temp = tempnam(sys_get_temp_dir(), 'webp');
+
+        try {
+            if (! imagewebp($image, $temp, $quality)) {
+                throw new RuntimeException('Failed to encode image.');
+            }
+
+            $disk->put($relative, file_get_contents($temp), ['visibility' => 'public']);
+        } finally {
+            @unlink($temp);
+        }
     }
 
     private function guessMime(string $binary): ?string
