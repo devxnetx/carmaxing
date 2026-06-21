@@ -12,6 +12,7 @@ return [
     'nav_api_keys' => 'API keys',
     'nav_imports' => 'Imports',
     'nav_horizon' => 'Queues',
+    'nav_pulse' => 'Pulse',
     'actions' => 'Actions',
     'cancel_import' => 'Cancel',
     'import_cancel_confirm' => 'Cancel this import and unlock the start button?',

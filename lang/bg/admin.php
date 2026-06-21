@@ -12,6 +12,7 @@ return [
     'nav_api_keys' => 'API ключове',
     'nav_imports' => 'Импорти',
     'nav_horizon' => 'Опашки',
+    'nav_pulse' => 'Pulse',
     'actions' => 'Действия',
     'cancel_import' => 'Отмени',
     'import_cancel_confirm' => 'Да отменя ли този импорт и да отключи бутона за старт?',
