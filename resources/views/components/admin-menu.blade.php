@@ -33,6 +33,7 @@
         <div class="py-1">
             @foreach($links as $link)
                 <a
+
                     href="{{ route($link['route']) }}"
                     class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--color-surface-3)] {{ AdminNavigation::isActive($link) ? 'bg-[var(--color-surface-3)] font-medium text-brand-600' : '' }}"
                     role="menuitem"
