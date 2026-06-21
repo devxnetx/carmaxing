@@ -40,17 +40,13 @@ Visit http://localhost:8000
 
 Imports and other tasks use Laravel's queue. For **local development**, `.env.example` sets `QUEUE_CONNECTION=sync` so imports run immediately when you click the button.
 
-For **production** with `QUEUE_CONNECTION=database`, run a persistent worker:
+For **production** with `QUEUE_CONNECTION=database`, either run a persistent worker:
 
 ```bash
-php artisan queue:work
+php artisan queue:work database --sleep=3 --tries=1 --timeout=1800
 ```
 
-Or add cron (every minute) — the app scheduler also drains the queue when not using `sync`:
-
-```bash
-* * * * * cd /path/to/autoclasi && php artisan schedule:run >> /dev/null 2>&1
-```
+Or enable the Laravel Cloud **Scheduler** — it drains the queue every 30 minutes (up to ~30 min per run). Mobile.bg imports allow up to 30 minutes (`ImportMobileBgListings::$timeout = 1800`).
 
 Saved-search email alerts use the same scheduler (`searches:notify` hourly).
 

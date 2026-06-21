@@ -12,7 +12,7 @@ Schedule::command('searches:notify')->hourly();
 
 Schedule::command('tenders:close-expired')->everyMinute();
 
-Schedule::command('queue:work --stop-when-empty --max-time=55')
-    ->everyMinute()
+Schedule::command('queue:work database --stop-when-empty --tries=1 --timeout=1800 --max-time=1799')
+    ->everyThirtyMinutes()
     ->withoutOverlapping()
     ->when(fn () => config('queue.default') !== 'sync');
