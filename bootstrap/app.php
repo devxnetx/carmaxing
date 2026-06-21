@@ -58,7 +58,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            RequestLocale::apply($request);
+            try {
+                RequestLocale::apply($request);
+            } catch (\Throwable) {
+                app()->setLocale(config('app.locale', 'bg'));
+            }
 
             return null;
         });

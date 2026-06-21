@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\CloudConfiguration;
 use App\View\Composers\FooterComposer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        CloudConfiguration::apply($this->app);
     }
 
     public function boot(): void
