@@ -53,10 +53,13 @@
                         <div class="mt-6 border-t border-[var(--color-border)] pt-4">
                             <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">{{ __('admin.title') }}</p>
                             @foreach(\App\Support\AdminNavigation::items() as $link)
+                                @if(array_key_exists('route', $link))
                                 <a href="{{ route($link['route']) }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm hover:bg-[var(--color-surface-3)]">
                                     <x-icon :name="$link['icon']" class="h-4 w-4 text-[var(--color-text-muted)]" />
                                     {{ $link['label'] }}
                                 </a>
+                                @endif
+
                             @endforeach
                         </div>
                     @endif
