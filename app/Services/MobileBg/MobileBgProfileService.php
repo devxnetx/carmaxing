@@ -95,7 +95,7 @@ class MobileBgProfileService
             $binary = $this->client->download($url);
             $path = $this->imageProcessor->processSingleBinary(
                 $binary,
-                "companies/{$company->id}/mobile-bg-{$type}",
+                "companies/{$company->id}/carmaxing-{$type}",
                 $config,
             );
 
