@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureOnboardingComplete;
 use App\Http\Middleware\EnsureTendersEnabled;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\SetLocale;
+use App\Support\RequestLocale;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -55,4 +56,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        $exceptions->render(function (\Throwable $e, Request $request) {
+            if ($request->is('api/*') || config('app.debug')) {
+                return null;
+            }
+
+            RequestLocale::apply($request);
+
+            return null;
+        });
     })->create();
