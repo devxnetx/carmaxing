@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureOnboardingComplete;
 use App\Http\Middleware\EnsureTendersEnabled;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\SetLocale;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -38,6 +39,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'company.api' => AuthenticateCompanyApiKey::class,
             'tenders.enabled' => EnsureTendersEnabled::class,
         ]);
+    })
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command('searches:notify')->hourly();
+
+        $schedule->command('tenders:close-expired')->everyMinute();
+
+        $schedule->command('queue:work database --stop-when-empty --tries=1 --timeout=1800 --max-time=1799')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->when(fn () => config('queue.default') !== 'sync');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
