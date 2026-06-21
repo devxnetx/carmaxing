@@ -1,4 +1,4 @@
-<?php
+    <?php
 
 use Laravel\Pulse\Http\Middleware\Authorize;
 use Laravel\Pulse\Pulse;

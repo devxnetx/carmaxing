@@ -51,6 +51,7 @@ class AdminNavigation
                 'label' => __('admin.nav_pulse'),
                 'icon' => 'activity',
                 'external' => true,
+                'route' => 'pulse'
             ];
         }
 

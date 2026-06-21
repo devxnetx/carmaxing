@@ -1,6 +1,7 @@
 @php
     use App\Support\AdminNavigation;
     $links = AdminNavigation::items();
+
 @endphp
 
 <div x-data="{ open: false }" class="relative">
@@ -33,7 +34,7 @@
             @foreach($links as $link)
                 <a
                     href="{{ route($link['route']) }}"
-                    class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--color-surface-3)] {{ AdminNavigation::isActive($link['route']) ? 'bg-[var(--color-surface-3)] font-medium text-brand-600' : '' }}"
+                    class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--color-surface-3)] {{ AdminNavigation::isActive($link) ? 'bg-[var(--color-surface-3)] font-medium text-brand-600' : '' }}"
                     role="menuitem"
                 >
                     <x-icon :name="$link['icon']" class="h-4 w-4 text-[var(--color-text-muted)]" />
