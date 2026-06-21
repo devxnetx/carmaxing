@@ -340,6 +340,7 @@ return [
     'mobile_bg_import_started' => 'Import queued in the background. Run a queue worker (php artisan queue:work) or wait for cron to process the queue, then refresh this page.',
     'mobile_bg_import_started_sync' => 'Import finished. Refresh this page to see the results.',
     'mobile_bg_import_running' => 'An import is already running. Wait for it to finish before starting another.',
+    'mobile_bg_import_stale' => 'Import timed out or the queue worker stopped. Marked as failed so you can try again.',
     'mobile_bg_last_sync' => 'Last sync',
     'mobile_bg_import_status' => 'Import status',
     'mobile_bg_import_pending' => 'Queued',

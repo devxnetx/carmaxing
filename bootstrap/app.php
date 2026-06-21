@@ -44,6 +44,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('searches:notify')->hourly();
 
         $schedule->command('tenders:close-expired')->everyMinute();
+
+        $schedule->command('imports:reset-stale')->everyFifteenMinutes();
+
+        if (class_exists(\Laravel\Horizon\Horizon::class)) {
+            $schedule->command('horizon:snapshot')->everyFiveMinutes();
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

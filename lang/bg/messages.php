@@ -340,6 +340,7 @@ return [
     'mobile_bg_import_started' => 'Извличането започна във фонов режим. Стартирайте queue worker (php artisan queue:work) или изчакайте cron да обработи опашката, след което презаредете страницата.',
     'mobile_bg_import_started_sync' => 'Извличането приключи. Презаредете страницата, за да видите резултатите.',
     'mobile_bg_import_running' => 'Вече тече импорт. Изчакайте да приключи преди нов опит.',
+    'mobile_bg_import_stale' => 'Импортът изтече или queue worker-ът спря. Маркиран като неуспешен — опитайте отново.',
     'mobile_bg_last_sync' => 'Последна синхронизация',
     'mobile_bg_import_status' => 'Статус на импорта',
     'mobile_bg_import_pending' => 'В опашка',

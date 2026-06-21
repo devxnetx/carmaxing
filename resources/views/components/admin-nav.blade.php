@@ -6,9 +6,10 @@
 @endphp
 
 @foreach($links as $link)
-    @php $active = AdminNavigation::isActive($link['route']); @endphp
+    @php $active = AdminNavigation::isActive($link); @endphp
     <a
-        href="{{ route($link['route']) }}"
+        href="{{ $link['url'] ?? route($link['route']) }}"
+        @if(! empty($link['external'])) target="_blank" rel="noopener noreferrer" @endif
         @class([
             'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition',
             'bg-brand-600 text-white' => $active && ! $mobile,

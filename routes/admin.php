@@ -47,6 +47,7 @@ Route::middleware(['auth', 'onboarding', 'admin'])
         Route::put('/reports/{report}', [ReportController::class, 'resolve'])->name('reports.resolve');
 
         Route::get('/imports', [ImportRunController::class, 'index'])->name('imports.index');
+        Route::post('/imports/{import}/cancel', [ImportRunController::class, 'cancel'])->name('imports.cancel');
 
         Route::get('/leads', [LeadController::class, 'index'])->name('leads.index');
         Route::post('/leads/extract', [LeadController::class, 'store'])->name('leads.extract');

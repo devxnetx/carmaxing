@@ -57,7 +57,7 @@ class CompanyController extends Controller
         $apiKeys = $company->apiKeys()->latest()->get();
         $activeApiKey = $apiKeys->firstWhere('is_active', true);
         $recentImports = $company->mobileBgImportRuns()->limit(5)->get();
-        $latestImport = $company->mobileBgImportRuns()->first();
+        $latestImport = MobileBgImportRun::latestForCompany($company);
         $recentListings = $company->listings()
             ->with(['brand', 'model.parent'])
             ->latest('updated_at')

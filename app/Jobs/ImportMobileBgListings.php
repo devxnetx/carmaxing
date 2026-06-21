@@ -13,13 +13,22 @@ class ImportMobileBgListings implements ShouldQueue
 
     public int $timeout = 1800;
 
+    public int $tries = 1;
+
     public function __construct(
         public MobileBgImportRun $run,
         public bool $syncImages = true,
-    ) {}
+    ) {
+        $this->onQueue('imports');
+    }
 
     public function handle(MobileBgImporter $importer): void
     {
-        $importer->run($this->run, $this->syncImages);
+        $importer->run($this->run->fresh(), $this->syncImages);
+    }
+
+    public function failed(\Throwable $exception): void
+    {
+        $this->run->fresh()?->markAsFailed($exception->getMessage());
     }
 }

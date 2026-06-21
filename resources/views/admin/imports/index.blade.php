@@ -21,7 +21,7 @@
         </div>
     </x-admin-filters>
 
-    <x-admin-table :headers="[__('admin.company'), __('admin.status'), __('admin.found'), __('admin.created'), __('admin.updated'), __('admin.failed'), __('admin.started')]">
+    <x-admin-table :headers="[__('admin.company'), __('admin.status'), __('admin.found'), __('admin.created'), __('admin.updated'), __('admin.failed'), __('admin.started'), __('admin.actions')]">
         @forelse($imports as $import)
             <tr class="hover:bg-[var(--color-surface-3)]">
                 <td class="px-4 py-3">
@@ -40,9 +40,19 @@
                 <td class="px-4 py-3">{{ $import->updated_count }}</td>
                 <td class="px-4 py-3">{{ $import->failed_count }}</td>
                 <td class="px-4 py-3 text-[var(--color-text-muted)]">{{ $import->started_at?->format('d.m.Y H:i') ?: '—' }}</td>
+                <td class="px-4 py-3">
+                    @if($import->isActive())
+                        <form method="POST" action="{{ route('admin.imports.cancel', $import) }}" onsubmit="return confirm(@js(__('admin.import_cancel_confirm')))">
+                            @csrf
+                            <button type="submit" class="text-sm text-red-600 hover:underline">{{ __('admin.cancel_import') }}</button>
+                        </form>
+                    @else
+                        —
+                    @endif
+                </td>
             </tr>
         @empty
-            <tr><td colspan="7" class="px-4 py-8 text-center text-[var(--color-text-muted)]">{{ __('admin.no_results') }}</td></tr>
+            <tr><td colspan="8" class="px-4 py-8 text-center text-[var(--color-text-muted)]">{{ __('admin.no_results') }}</td></tr>
         @endforelse
     </x-admin-table>
 

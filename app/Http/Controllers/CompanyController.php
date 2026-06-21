@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Listing;
+use App\Models\MobileBgImportRun;
 use App\Models\VehicleBrand;
 use App\Rules\BulgarianPhoneLocal;
 use App\Services\ImageProcessor;
@@ -67,7 +68,7 @@ class CompanyController extends Controller
         return view('company.edit', [
             'company' => $company,
             'regions' => \App\Models\Region::query()->orderBy('sort_order')->get(),
-            'latestImport' => $company->mobileBgImportRuns()->first(),
+            'latestImport' => MobileBgImportRun::latestForCompany($company),
         ]);
     }
 
