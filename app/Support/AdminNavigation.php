@@ -38,7 +38,9 @@ class AdminNavigation
      */
     private static function monitoringItems(): array
     {
-        $items = [];
+        $items = [
+            ['route' => 'admin.logs.index', 'label' => __('admin.nav_logs'), 'icon' => 'list'],
+        ];
 
         if (class_exists(\Laravel\Pulse\Pulse::class)) {
             $path = trim(config('pulse.path', 'pulse'), '/');

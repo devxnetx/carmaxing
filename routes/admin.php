@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ImportRunController;
 use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\ListingController;
+use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
@@ -48,6 +49,8 @@ Route::middleware(['auth', 'onboarding', 'admin'])
 
         Route::get('/imports', [ImportRunController::class, 'index'])->name('imports.index');
         Route::post('/imports/{import}/cancel', [ImportRunController::class, 'cancel'])->name('imports.cancel');
+
+        Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
 
         Route::get('/leads', [LeadController::class, 'index'])->name('leads.index');
         Route::post('/leads/extract', [LeadController::class, 'store'])->name('leads.extract');
