@@ -44,11 +44,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('searches:notify')->hourly();
 
         $schedule->command('tenders:close-expired')->everyMinute();
-
-        $schedule->command('queue:work database --stop-when-empty --tries=1 --timeout=1800 --max-time=1799')
-            ->everyThirtyMinutes()
-            ->withoutOverlapping()
-            ->when(fn () => config('queue.default') !== 'sync');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
