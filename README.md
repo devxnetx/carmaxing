@@ -113,6 +113,21 @@ php artisan migrate --force
 
 After that works, you can add `/public/build` back to `.gitignore` and let Cloud build assets on each deploy.
 
+### Images and uploads (important)
+
+Laravel Cloud uses an **ephemeral filesystem** — files in `storage/app/public` are **wiped on every deploy**. `php artisan storage:link` only recreates the symlink; it does not bring files back.
+
+For listing photos, avatars, and company logos to survive deploys:
+
+1. In Laravel Cloud → your environment → **Add bucket** → **Laravel Object Storage**
+2. Choose **Public** visibility and set disk name to `public` (or leave default — the app switches the `public` disk to S3 when `AWS_BUCKET` is set)
+3. Redeploy — Cloud injects `AWS_*` env vars automatically
+4. Re-import listings or upload existing files from `storage/app/public/` via the bucket credentials (Cyberduck, etc.)
+
+Locally, leave `AWS_BUCKET` empty and files stay on disk under `storage/app/public`.
+
+Do **not** put `php artisan storage:link` in deploy commands — Cloud docs say it will not persist.
+
 ## Performance & SEO
 
 - System font stack (no webfont downloads)
