@@ -20,7 +20,9 @@ class ImportMobileBgListings implements ShouldQueue
         public MobileBgImportRun $run,
         public bool $syncImages = true,
     ) {
-        $this->onQueue(ManagedQueue::NAME);
+        if ($queue = ManagedQueue::name()) {
+            $this->onQueue($queue);
+        }
     }
 
     public function handle(MobileBgImporter $importer): void

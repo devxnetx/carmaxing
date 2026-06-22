@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\MobileBg\MobileBgProfileService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class MobileBgProfileController extends Controller
 {
@@ -23,10 +24,21 @@ class MobileBgProfileController extends Controller
             return back()
                 ->withInput()
                 ->with('error', $exception->getMessage());
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            Log::error('Mobile.bg profile extract failed', [
+                'company_id' => $company->id,
+                'url' => $data['mobile_bg_profile_url'],
+                'message' => $exception->getMessage(),
+                'exception' => $exception::class,
+            ]);
+
+            $message = config('app.debug')
+                ? $exception->getMessage()
+                : __('messages.mobile_bg_profile_extract_failed');
+
             return back()
                 ->withInput()
-                ->with('error', __('messages.mobile_bg_profile_extract_failed'));
+                ->with('error', $message);
         }
 
         return redirect()

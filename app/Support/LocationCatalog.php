@@ -42,6 +42,21 @@ class LocationCatalog
         return $cities;
     }
 
+    public static function regionSlugForCity(string $city): ?string
+    {
+        $normalized = mb_strtolower(trim($city));
+
+        foreach (self::bgCities() as $slug => $cities) {
+            foreach ($cities as $name) {
+                if (mb_strtolower($name) === $normalized) {
+                    return $slug;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public static function countryName(string $code, ?string $locale = null): ?string
     {
         $locale = $locale ?? app()->getLocale();

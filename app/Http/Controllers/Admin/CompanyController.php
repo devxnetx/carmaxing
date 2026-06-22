@@ -10,6 +10,7 @@ use App\Models\MobileBgImportRun;
 use App\Rules\BulgarianPhoneLocal;
 use App\Services\MobileBg\MobileBgClient;
 use App\Services\MobileBg\MobileBgProfileService;
+use App\Support\ManagedQueue;
 use App\Support\PhoneNumber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -137,10 +138,16 @@ class CompanyController extends Controller
             return back()
                 ->withInput()
                 ->with('error', $exception->getMessage());
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            $message = config('app.debug')
+                ? $exception->getMessage()
+                : __('messages.mobile_bg_profile_extract_failed');
+
             return back()
                 ->withInput()
-                ->with('error', __('messages.mobile_bg_profile_extract_failed'));
+                ->with('error', $message);
         }
 
         return back()->with('success', __('admin.mobile_profile_extracted'));
@@ -202,14 +209,6 @@ class CompanyController extends Controller
 
     private function dispatchImport(MobileBgImportRun $run, bool $syncImages): void
     {
-        $job = new ImportMobileBgListings($run, $syncImages);
-
-        if (config('queue.default') === 'sync') {
-            dispatch_sync($job);
-
-            return;
-        }
-
-        dispatch($job);
+        ManagedQueue::dispatch(new ImportMobileBgListings($run, $syncImages));
     }
 }

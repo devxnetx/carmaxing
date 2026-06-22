@@ -17,7 +17,9 @@ class ExtractLeadsFromMobileBg implements ShouldQueue
     public function __construct(
         public LeadExtractionRun $run,
     ) {
-        $this->onQueue(ManagedQueue::NAME);
+        if ($queue = ManagedQueue::name()) {
+            $this->onQueue($queue);
+        }
     }
 
     public function handle(LeadExtractionService $service): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\ImportMobileBgListings;
 use App\Models\MobileBgImportRun;
 use App\Services\MobileBg\MobileBgClient;
+use App\Support\ManagedQueue;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -83,14 +84,6 @@ class MobileBgImportController extends Controller
 
     private function dispatchImport(MobileBgImportRun $run, bool $syncImages): void
     {
-        $job = new ImportMobileBgListings($run, $syncImages);
-
-        if (config('queue.default') === 'sync') {
-            dispatch_sync($job);
-
-            return;
-        }
-
-        dispatch($job);
+        ManagedQueue::dispatch(new ImportMobileBgListings($run, $syncImages));
     }
 }

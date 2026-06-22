@@ -10,6 +10,7 @@ use App\Mail\LeadInviteMail;
 use App\Models\Lead;
 use App\Models\LeadExtractionRun;
 use App\Services\MobileBg\MobileBgDealersDirectoryScraper;
+use App\Support\ManagedQueue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -112,13 +113,7 @@ class LeadController extends Controller
             'status' => LeadExtractionRun::STATUS_PENDING,
         ]);
 
-        $job = new ExtractLeadsFromMobileBg($run);
-
-        if (config('queue.default') === 'sync') {
-            dispatch_sync($job);
-        } else {
-            dispatch($job);
-        }
+        ManagedQueue::dispatch(new ExtractLeadsFromMobileBg($run));
 
         $message = config('queue.default') === 'sync'
             ? __('admin.lead_extraction_completed_sync')
@@ -133,15 +128,11 @@ class LeadController extends Controller
             'city' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $job = new SyncLeadListingCounts($data['city'] ?? null);
+        ManagedQueue::dispatch(new SyncLeadListingCounts($data['city'] ?? null));
 
-        if (config('queue.default') === 'sync') {
-            dispatch_sync($job);
-            $message = __('admin.lead_counts_refreshed_sync');
-        } else {
-            dispatch($job);
-            $message = __('admin.lead_counts_refresh_started');
-        }
+        $message = config('queue.default') === 'sync'
+            ? __('admin.lead_counts_refreshed_sync')
+            : __('admin.lead_counts_refresh_started');
 
         return back()->with('success', $message);
     }

@@ -5,6 +5,7 @@ namespace App\Services\MobileBg;
 use App\Models\Company;
 use App\Models\Region;
 use App\Services\ImageProcessor;
+use App\Support\LocationCatalog;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Storage;
 
@@ -83,6 +84,14 @@ class MobileBgProfileService
         if ($city && mb_strtolower($city) === 'софия') {
             return Region::query()->where('slug', 'sofia-grad')->value('id')
                 ?? Region::query()->where('name', 'like', '%София%')->value('id');
+        }
+
+        if ($city) {
+            $slug = LocationCatalog::regionSlugForCity($city);
+
+            if ($slug) {
+                return Region::query()->where('slug', $slug)->value('id');
+            }
         }
 
         return null;

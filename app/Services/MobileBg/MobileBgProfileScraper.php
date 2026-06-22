@@ -94,9 +94,23 @@ class MobileBgProfileScraper
             if (preg_match('/^0[89]\d{8}$/', $digits)) {
                 return $digits;
             }
+
+            if (preg_match('/^359[89]\d{8}$/', $digits)) {
+                return '0'.substr($digits, 3);
+            }
         }
 
-        return isset($phones[0]) ? (preg_replace('/\D+/', '', $phones[0]) ?: null) : null;
+        if (! isset($phones[0])) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $phones[0]) ?? '';
+
+        if (preg_match('/^359[89]\d{8}$/', $digits)) {
+            return '0'.substr($digits, 3);
+        }
+
+        return $digits !== '' ? $digits : null;
     }
 
     /**
@@ -122,7 +136,10 @@ class MobileBgProfileScraper
                 if ($district !== '') {
                     $address = $address ?: $district;
                 }
-                $region = 'София-град';
+
+                if (mb_strtolower($city) === 'софия') {
+                    $region = 'София-град';
+                }
             } elseif (preg_match('/^обл\.\s*(.+)$/u', $regionText, $parts)) {
                 $region = trim($parts[1]);
             }

@@ -16,7 +16,9 @@ class SyncLeadListingCounts implements ShouldQueue
     public function __construct(
         public ?string $sourceCity = null,
     ) {
-        $this->onQueue(ManagedQueue::NAME);
+        if ($queue = ManagedQueue::name()) {
+            $this->onQueue($queue);
+        }
     }
 
     public function handle(LeadListingCountService $service): void
