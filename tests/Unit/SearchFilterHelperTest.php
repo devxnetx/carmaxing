@@ -17,9 +17,7 @@ class SearchFilterHelperTest extends TestCase
             'page' => 2,
             'sort' => 'newest',
             'view' => 'grid',
-            'map_lat' => 42.6,
-            'map_lng' => 23.3,
-            'radius_km' => 50,
+            'scope' => 'imports',
         ]));
 
         $this->assertSame(['brand_id' => 1], $filters);

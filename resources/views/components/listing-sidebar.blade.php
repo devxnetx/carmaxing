@@ -27,23 +27,34 @@
             </p>
         @endif
 
-        <div class="mt-4">
+        <div class="mt-4" @if($listing->hasFixedPrice() && $listing->priceChanges->isNotEmpty()) x-data="{ priceHistoryOpen: false }" @endif>
             @if($listing->price_on_request)
                 <div class="text-2xl font-bold text-brand-600">{{ __('messages.price_on_request') }}</div>
             @else
-                <div class="text-3xl font-bold text-brand-600">
-                    {{ number_format($listing->price) }} {{ __('messages.eur') }}
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="text-3xl font-bold text-brand-600">
+                        {{ number_format($listing->price) }} {{ __('messages.eur') }}
+                    </div>
+                    @if($listing->priceChanges->isNotEmpty())
+                        <button
+                            type="button"
+                            @click="priceHistoryOpen = true"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-border)] text-[var(--color-text-muted)] transition hover:border-brand-500 hover:bg-[var(--color-surface-3)] hover:text-brand-600"
+                            title="{{ __('messages.price_history_title') }}"
+                            aria-label="{{ __('messages.price_history_title') }}"
+                        >
+                            <x-icon name="arrows-up-down" class="h-4 w-4" />
+                        </button>
+                    @endif
                 </div>
                 <div class="text-sm text-[var(--color-text-muted)]">{{ number_format($listing->priceInBgn()) }} {{ __('messages.bgn') }}</div>
             @endif
             @if($listing->price_negotiable && $listing->hasFixedPrice())
                 <span class="badge mt-2 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">{{ __('messages.negotiable') }}</span>
             @endif
-            @isset($latestPriceChange)
-                <p class="mt-2 text-sm text-[var(--color-text-muted)]">
-                    {{ __('messages.price_was', ['old' => number_format($latestPriceChange->old_price), 'new' => number_format($latestPriceChange->new_price)]) }}
-                </p>
-            @endisset
+            @if($listing->hasFixedPrice() && $listing->priceChanges->isNotEmpty())
+                <x-listing-price-history-modal :listing="$listing" />
+            @endif
             @isset($marketEstimate)
                 @if($marketEstimate['delta'] > 0)
                     <p class="mt-2 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800 dark:bg-green-950 dark:text-green-200">
@@ -151,11 +162,18 @@
         @auth
             @if($isOwner)
                 <div class="mt-4 flex gap-2">
-                    <a href="{{ route('listings.edit', $listing) }}" class="btn-secondary flex-1">{{ __('messages.edit') }}</a>
-                    <form method="POST" action="{{ route('listings.archive', $listing) }}" class="flex-1">
-                        @csrf
-                        <button type="submit" class="btn-secondary w-full text-red-600">{{ __('messages.archive') }}</button>
-                    </form>
+                    @if($listing->status->isInactive())
+                        <form method="POST" action="{{ route('listings.unarchive', $listing) }}" class="flex-1">
+                            @csrf
+                            <button type="submit" class="btn-secondary w-full text-brand-600">{{ __('messages.unarchive') }}</button>
+                        </form>
+                    @else
+                        <a href="{{ route('listings.edit', $listing) }}" class="btn-secondary flex-1">{{ __('messages.edit') }}</a>
+                        <form method="POST" action="{{ route('listings.archive', $listing) }}" class="flex-1">
+                            @csrf
+                            <button type="submit" class="btn-secondary w-full text-red-600">{{ __('messages.archive') }}</button>
+                        </form>
+                    @endif
                 </div>
             @endif
         @endauth

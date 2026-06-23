@@ -160,5 +160,14 @@
         @case('eye-off')
             <path d="M3 3l18 18M10.6 10.6A2.5 2.5 0 0 0 12 14.5a2.5 2.5 0 0 0 1.9-.9M9.9 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18.2 18.2 0 0 1-4.1 5.2M6.1 6.1A18.5 18.5 0 0 0 2 12s3.5 7 10 7a10.2 10.2 0 0 0 4.2-.9" />
             @break
+        @case('arrow-up')
+            <path d="M12 19V5M12 5l-6 6M12 5l6 6" />
+            @break
+        @case('arrow-down')
+            <path d="M12 5v14M12 19l-6-6M12 19l6-6" />
+            @break
+        @case('arrows-up-down')
+            <path d="M8 9l4-4 4 4M8 15l4 4 4-4" />
+            @break
     @endswitch
 </svg>

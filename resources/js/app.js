@@ -99,8 +99,9 @@ Alpine.data('cookieConsent', (initialConsent, storeUrl, policyUrl) => ({
     },
 }));
 
-Alpine.data('brandModelPicker', (brandId = null, selectedSeries = [], selectedModels = []) => ({
-    brandId: brandId,
+Alpine.data('brandModelPicker', (brandId = null, selectedSeries = [], selectedModels = [], scope = 'listings') => ({
+    brandId: brandId ? String(brandId) : '',
+    scope,
     series: [],
     flatModels: [],
     selectedSeries: normalizeIdList(selectedSeries),
@@ -118,7 +119,7 @@ Alpine.data('brandModelPicker', (brandId = null, selectedSeries = [], selectedMo
     },
 
     async loadModels(id) {
-        this.brandId = id;
+        this.brandId = id ? String(id) : '';
         if (!id) {
             this.series = [];
             this.flatModels = [];
@@ -126,7 +127,7 @@ Alpine.data('brandModelPicker', (brandId = null, selectedSeries = [], selectedMo
         }
 
         this.loading = true;
-        const res = await fetch(`/api/brands/${id}/models`);
+        const res = await fetch(`/api/brands/${id}/models?scope=${encodeURIComponent(this.scope)}`);
         const data = await res.json();
         this.series = data.series || [];
         this.flatModels = data.flat_models || [];
@@ -274,79 +275,21 @@ Alpine.data('listingPhotoUpload', () => ({
     },
 }));
 
-Alpine.data('searchFilters', (initialExtended = false) => ({
-    extended: initialExtended,
-    toggleExtended() {
-        this.extended = !this.extended;
-    },
-}));
-
-Alpine.data('locationPicker', (countries = [], initial = {}) => ({
-    locationType: initial.location_type || '',
+Alpine.data('locationPicker', (initial = {}, citiesEndpoint = 'cities') => ({
     regionId: initial.region_id ? String(initial.region_id) : '',
     city: initial.city || '',
-    countryCode: initial.country_code || '',
     cities: [],
-    cityQuery: '',
-    countryQuery: '',
-    cityOpen: false,
-    countryOpen: false,
     loadingCities: false,
+    citiesEndpoint,
 
     async init() {
         if (this.regionId) {
             await this.loadCities(this.regionId);
         }
-
-        if (this.city) {
-            this.cityQuery = this.city;
-        }
-
-        if (this.countryCode) {
-            const match = countries.find((country) => country.code === this.countryCode);
-            if (match) {
-                this.countryQuery = match.name;
-            }
-        }
-    },
-
-    get filteredCountries() {
-        const query = this.countryQuery.trim().toLowerCase();
-
-        if (!query) {
-            return countries;
-        }
-
-        return countries.filter((country) => country.name.toLowerCase().includes(query));
-    },
-
-    get filteredCities() {
-        const query = this.cityQuery.trim().toLowerCase();
-
-        if (!query) {
-            return this.cities;
-        }
-
-        return this.cities.filter((city) => city.toLowerCase().includes(query));
-    },
-
-    onTypeChange() {
-        if (this.locationType !== 'bg') {
-            this.regionId = '';
-            this.city = '';
-            this.cityQuery = '';
-            this.cities = [];
-        }
-
-        if (this.locationType !== 'abroad') {
-            this.countryCode = '';
-            this.countryQuery = '';
-        }
     },
 
     async onRegionChange() {
         this.city = '';
-        this.cityQuery = '';
         await this.loadCities(this.regionId);
     },
 
@@ -359,29 +302,52 @@ Alpine.data('locationPicker', (countries = [], initial = {}) => ({
         this.loadingCities = true;
 
         try {
-            const response = await fetch(`/api/regions/${regionId}/cities`);
+            const response = await fetch(`/api/regions/${regionId}/${this.citiesEndpoint}`);
             const data = await response.json();
             this.cities = data.cities || [];
         } finally {
             this.loadingCities = false;
         }
     },
+}));
 
-    selectCity(name) {
-        this.city = name;
-        this.cityQuery = name;
-        this.cityOpen = false;
+Alpine.data('mileageMax', (min = 0, max = 300000, initialMax = null, anyLabel = 'Any', kmSuffix = 'km') => ({
+    min,
+    max,
+    anyLabel,
+    kmSuffix,
+    value: initialMax ?? max,
+
+    get fillStyle() {
+        const range = this.max - this.min;
+        const right = ((this.max - this.value) / range) * 100;
+
+        return {
+            left: '0%',
+            right: `${right}%`,
+        };
     },
 
-    selectCountry(code, name) {
-        this.countryCode = code;
-        this.countryQuery = name;
-        this.countryOpen = false;
+    get hiddenTo() {
+        return this.value >= this.max ? '' : this.value;
     },
 
-    clearCity() {
-        this.city = '';
-        this.cityQuery = '';
+    get label() {
+        if (this.value >= this.max) {
+            return this.anyLabel;
+        }
+
+        return `${new Intl.NumberFormat().format(this.value)} ${this.kmSuffix}`;
+    },
+
+    onInput() {
+        if (this.value < this.min) {
+            this.value = this.min;
+        }
+
+        if (this.value > this.max) {
+            this.value = this.max;
+        }
     },
 }));
 
@@ -1138,15 +1104,117 @@ Alpine.data('phoneReveal', (config) => ({
     },
 }));
 
-function initSearchMap() {
-    const container = document.getElementById('search-map');
+
+
+Alpine.data('subscriptionToggles', (initialSettings, updateUrl) => ({
+    settings: { ...initialSettings },
+    saving: false,
+
+    async toggle(key, enabled) {
+        const previous = this.settings[key];
+        this.settings[key] = enabled;
+        this.saving = true;
+
+        try {
+            const response = await fetch(updateUrl, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({ key, enabled }),
+            });
+
+            if (!response.ok) {
+                this.settings[key] = previous;
+                return;
+            }
+
+            const data = await response.json();
+            this.settings[key] = data.enabled;
+        } catch {
+            this.settings[key] = previous;
+        } finally {
+            this.saving = false;
+        }
+    },
+}));
+
+Alpine.data('subscriptionPrompt', (initialSettings, updateUrl, dismissUrl, manageUrl) => ({
+    settings: { ...initialSettings },
+    visible: false,
+    savingKey: null,
+    manageUrl,
+
+    init() {
+        this.visible = true;
+    },
+
+    isSaving(key) {
+        return this.savingKey === key;
+    },
+
+    async toggle(key, enabled) {
+        const previous = this.settings[key];
+        this.settings[key] = enabled;
+        this.savingKey = key;
+
+        try {
+            const response = await fetch(updateUrl, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({ key, enabled }),
+            });
+
+            if (!response.ok) {
+                this.settings[key] = previous;
+                return;
+            }
+
+            const data = await response.json();
+            this.settings[key] = data.enabled;
+        } catch {
+            this.settings[key] = previous;
+        } finally {
+            this.savingKey = null;
+        }
+    },
+
+    async dismiss(markPrompted = true) {
+        this.visible = false;
+
+        if (!markPrompted) {
+            return;
+        }
+
+        try {
+            await fetch(dismissUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    Accept: 'application/json',
+                },
+            });
+        } catch {
+            // ignore
+        }
+    },
+}));
+
+function initDealersMap() {
+    const container = document.getElementById('dealers-map');
     if (!container || typeof window.L === 'undefined') {
         return;
     }
 
     const center = JSON.parse(container.dataset.center || '{}');
     const markers = JSON.parse(container.dataset.markers || '[]');
-    const priceOnRequest = container.dataset.priceOnRequest || 'On request';
+    const listingsLabel = container.dataset.listingsLabel || 'listings';
 
     const map = window.L.map(container).setView([center.lat, center.lng], center.zoom || 8);
 
@@ -1158,12 +1226,12 @@ function initSearchMap() {
     const group = window.L.featureGroup();
 
     markers.forEach((marker) => {
-        const priceLabel = marker.price_on_request
-            ? priceOnRequest
-            : `${new Intl.NumberFormat().format(marker.price)} €`;
+        const listingsText = `${new Intl.NumberFormat().format(marker.listings)} ${listingsLabel}`;
+        const verifiedBadge = marker.verified ? ' ✓' : '';
+        const cityLine = marker.city ? `<br><span class="text-sm">${marker.city}</span>` : '';
 
         const popup = window.L.popup().setContent(
-            `<a href="${marker.url}" class="font-medium">${marker.title}</a><br><span>${priceLabel}</span>`,
+            `<a href="${marker.url}" class="font-medium">${marker.name}${verifiedBadge}</a>${cityLine}<br><span class="text-sm">${listingsText}</span>`,
         );
 
         window.L.marker([marker.lat, marker.lng]).bindPopup(popup).addTo(group);
@@ -1172,18 +1240,10 @@ function initSearchMap() {
     group.addTo(map);
 
     if (markers.length > 0) {
-        map.fitBounds(group.getBounds().pad(0.15));
+        map.fitBounds(group.getBounds().pad(0.12));
     }
-
-    map.on('moveend', () => {
-        const mapCenter = map.getCenter();
-        const latInput = document.getElementById('map-lat-input');
-        const lngInput = document.getElementById('map-lng-input');
-        if (latInput) latInput.value = mapCenter.lat.toFixed(6);
-        if (lngInput) lngInput.value = mapCenter.lng.toFixed(6);
-    });
 }
 
-document.addEventListener('DOMContentLoaded', initSearchMap);
+document.addEventListener('DOMContentLoaded', initDealersMap);
 
 Alpine.start();

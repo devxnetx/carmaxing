@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SearchScope;
 use App\Models\Region;
-use App\Models\VehicleModel;
-use App\Support\CatalogCache;
+use App\Models\VehicleBrand;
+use App\Services\AuctionLotSearchService;
+use App\Services\CatalogCountService;
 use App\Services\ListingSearchService;
 use App\Services\SearchFilterHelper;
 use App\Services\SearchHistoryService;
-use App\Support\GeoCatalog;
+use App\Services\TenderSearchService;
+use App\Support\CatalogCache;
 use App\Support\LocationCatalog;
 use App\Support\SearchSeoBuilder;
 use Illuminate\Http\JsonResponse;
@@ -18,18 +21,55 @@ use Illuminate\View\View;
 class SearchController extends Controller
 {
     public function __construct(
-        private ListingSearchService $searchService,
+        private ListingSearchService $listingSearch,
+        private AuctionLotSearchService $importSearch,
+        private TenderSearchService $auctionSearch,
         private SearchFilterHelper $filterHelper,
         private SearchHistoryService $searchHistory,
+        private CatalogCountService $catalogCounts,
     ) {}
 
+    public function form(Request $request): View
+    {
+        $scope = SearchScope::fromRequest($request->input('scope'));
+
+        return view('search.form', $this->catalogViewData($request, $scope, extendedOpen: true));
+    }
+
     public function index(Request $request): View
+    {
+        return $this->results($request, SearchScope::Listings);
+    }
+
+    public function imports(Request $request): View
+    {
+        return $this->results($request, SearchScope::Imports);
+    }
+
+    public function auctions(Request $request): View
+    {
+        return $this->results($request, SearchScope::Auctions);
+    }
+
+    private function results(Request $request, SearchScope $scope): View
     {
         if ($user = $request->user()) {
             $this->searchHistory->record($user, $request);
         }
 
-        $listings = $this->searchService->search($request);
+        $data = $this->catalogViewData($request, $scope, extendedOpen: false);
+
+        return match ($scope) {
+            SearchScope::Listings => $this->listingResults($request, $data),
+            SearchScope::Imports => $this->importResults($request, $data),
+            SearchScope::Auctions => $this->auctionResults($request, $data),
+        };
+    }
+
+    /** @param  array<string, mixed>  $data */
+    private function listingResults(Request $request, array $data): View
+    {
+        $listings = $this->listingSearch->search($request);
 
         $favoritedIds = auth()->check()
             ? auth()->user()->favorites()->pluck('listing_id')->all()
@@ -37,106 +77,83 @@ class SearchController extends Controller
 
         $searchSeo = app(SearchSeoBuilder::class)->fromRequest($request, $listings->total());
 
-        $mapCenter = $this->resolveMapCenter($request);
-        $viewMode = match ($request->input('view', 'grid')) {
-            'map' => 'map',
-            'grid' => 'grid',
-            default => 'list',
-        };
+        $viewMode = $request->input('view', 'grid') === 'list' ? 'list' : 'grid';
 
-        return view('search.index', [
+        return view('search.index', array_merge($data, [
             'listings' => $listings,
+            'favoritedIds' => $favoritedIds,
+            'searchSeo' => $searchSeo,
+            'viewMode' => $viewMode,
+        ]));
+    }
+
+    /** @param  array<string, mixed>  $data */
+    private function importResults(Request $request, array $data): View
+    {
+        $lots = $this->importSearch->search($request);
+
+        $seoRequest = $request->duplicate()->merge(['scope' => SearchScope::Imports->value]);
+        $searchSeo = app(SearchSeoBuilder::class)->fromRequest($seoRequest, $lots->total());
+        $viewMode = $request->input('view', 'grid') === 'list' ? 'list' : 'grid';
+
+        return view('search.imports', array_merge($data, [
+            'lots' => $lots,
+            'searchSeo' => $searchSeo,
+            'viewMode' => $viewMode,
+        ]));
+    }
+
+    /** @param  array<string, mixed>  $data */
+    private function auctionResults(Request $request, array $data): View
+    {
+        $tenders = $this->auctionSearch->search($request);
+
+        return view('search.auctions', array_merge($data, [
+            'tenders' => $tenders,
+            'searchHeading' => __('messages.search_scope_auctions'),
+            'searchDescription' => __('messages.search_auctions_description', ['count' => $tenders->total()]),
+        ]));
+    }
+
+    /** @return array<string, mixed> */
+    private function catalogViewData(Request $request, SearchScope $scope, bool $extendedOpen): array
+    {
+        return [
+            'scope' => $scope,
             'brands' => CatalogCache::brands(),
+            'brandCounts' => $this->catalogCounts->brandCounts($scope),
+            'regionCounts' => $scope === SearchScope::Listings ? $this->catalogCounts->regionCounts() : [],
             'regions' => CatalogCache::regions(),
             'featureCategories' => CatalogCache::featureCategories(),
-            'filters' => $this->filterHelper->normalizeFilters($request->all()),
-            'extendedOpen' => $this->filterHelper->shouldOpenExtendedSearch($request),
-            'favoritedIds' => $favoritedIds,
             'countries' => LocationCatalog::countriesForLocale(),
-            'searchSeo' => $searchSeo,
-            'mapCenter' => $mapCenter,
-            'mapMarkers' => $viewMode === 'map' ? $this->searchService->mapMarkers($request) : collect(),
-            'viewMode' => $viewMode,
-        ]);
-    }
-
-    public function mapMarkers(Request $request): JsonResponse
-    {
-        return response()->json([
-            'markers' => $this->searchService->mapMarkers($request),
-        ]);
-    }
-
-    /** @return array{lat: float, lng: float, zoom: int} */
-    private function resolveMapCenter(Request $request): array
-    {
-        if ($request->filled('map_lat') && $request->filled('map_lng')) {
-            return [
-                'lat' => (float) $request->input('map_lat'),
-                'lng' => (float) $request->input('map_lng'),
-                'zoom' => 10,
-            ];
-        }
-
-        if ($regionId = $request->integer('region_id')) {
-            $region = Region::query()->find($regionId);
-            $coords = GeoCatalog::coordinatesForRegion($region);
-
-            if ($coords) {
-                return ['lat' => $coords['lat'], 'lng' => $coords['lng'], 'zoom' => 9];
-            }
-        }
-
-        return ['lat' => 42.6977, 'lng' => 23.3219, 'zoom' => 8];
+            'filters' => $this->filterHelper->normalizeFilters($request->all()),
+            'extendedOpen' => $extendedOpen,
+            'correctSearchUrl' => $this->filterHelper->formUrlFromRequest($request, $scope),
+            'resultsRoute' => route($scope->resultsRouteName()),
+        ];
     }
 
     public function cities(Region $region): JsonResponse
     {
         return response()->json([
-            'cities' => LocationCatalog::citiesForRegion($region),
+            'cities' => $this->catalogCounts->citiesWithCounts($region),
         ]);
     }
 
-    public function models(VehicleBrand $brand): JsonResponse
+    public function models(Request $request, VehicleBrand $brand): JsonResponse
     {
-        $all = $brand->models()->orderBy('sort_order')->orderBy('name')->get();
+        $scope = SearchScope::fromRequest($request->input('scope'));
 
-        $attachChildren = function (?int $parentId) use ($all, &$attachChildren) {
-            return $all
-                ->where('parent_id', $parentId)
-                ->values()
-                ->map(function (VehicleModel $model) use (&$attachChildren) {
-                    $model->setRelation('children', $attachChildren($model->id));
-
-                    return $model;
-                });
-        };
-
-        $series = $attachChildren(null)
-            ->filter(fn (VehicleModel $model) => $model->isSeries())
-            ->values();
-
-        $flatModels = $all
-            ->filter(fn (VehicleModel $model) => $model->type === 'model' && $model->parent_id === null)
-            ->values();
-
-        return response()->json([
-            'brand' => $brand,
-            'series' => $series,
-            'flat_models' => $flatModels,
-        ]);
-    }
-
-    public function modelTree(VehicleBrand $brand): JsonResponse
-    {
         return response()->json(
-            VehicleModel::query()
-                ->where('brand_id', $brand->id)
-                ->whereNull('parent_id')
-                ->with('children')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
+            $this->catalogCounts->brandModelsResponse($brand, $scope),
         );
+    }
+
+    public function modelTree(Request $request, VehicleBrand $brand): JsonResponse
+    {
+        $scope = SearchScope::fromRequest($request->input('scope'));
+        $payload = $this->catalogCounts->brandModelsResponse($brand, $scope);
+
+        return response()->json($payload['series']);
     }
 }

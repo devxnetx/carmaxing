@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ImportRunController;
 use App\Http\Controllers\Admin\LeadController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\SiteNewsController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +48,12 @@ Route::middleware(['auth', 'onboarding', 'admin'])
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::put('/reports/{report}', [ReportController::class, 'resolve'])->name('reports.resolve');
+
+        Route::get('/site-news', [SiteNewsController::class, 'index'])->name('site-news.index');
+        Route::post('/site-news', [SiteNewsController::class, 'store'])->name('site-news.store');
+
+        Route::get('/contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
+        Route::get('/contact-messages/{contactMessage}', [ContactMessageController::class, 'show'])->name('contact-messages.show');
 
         Route::get('/imports', [ImportRunController::class, 'index'])->name('imports.index');
         Route::post('/imports/{import}/cancel', [ImportRunController::class, 'cancel'])->name('imports.cancel');

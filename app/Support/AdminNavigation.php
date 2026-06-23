@@ -27,6 +27,8 @@ class AdminNavigation
             ['route' => 'admin.leads.index', 'label' => __('admin.nav_leads'), 'icon' => 'user'],
             ['route' => 'admin.listings.index', 'label' => __('admin.nav_listings'), 'icon' => 'list'],
             ['route' => 'admin.reports.index', 'label' => __('admin.nav_reports'), 'icon' => 'flag'],
+            ['route' => 'admin.contact-messages.index', 'label' => __('admin.nav_contact_messages'), 'icon' => 'send'],
+            ['route' => 'admin.site-news.index', 'label' => __('admin.nav_email_campaigns'), 'icon' => 'bell'],
             ['route' => 'admin.api-keys.index', 'label' => __('admin.nav_api_keys'), 'icon' => 'link'],
             ['route' => 'admin.imports.index', 'label' => __('admin.nav_imports'), 'icon' => 'share'],
             ['route' => 'admin.settings.index', 'label' => __('admin.nav_settings'), 'icon' => 'cog'],

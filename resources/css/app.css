@@ -86,6 +86,38 @@
         @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
     }
 
+    .search-scope-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .search-scope-tab {
+        position: relative;
+        margin-bottom: -1px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        background: transparent;
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        transition: color 0.15s ease, border-color 0.15s ease;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .search-scope-tab:hover {
+        color: var(--color-text);
+    }
+
+    .search-scope-tab-active {
+        color: var(--color-brand-600);
+        border-bottom-color: var(--color-brand-600);
+    }
+
     .search-form-main-grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -97,6 +129,127 @@
         .search-form-main-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }
+
+        .search-form-main-grid--two {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .filter-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-pill {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .filter-pill input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+    }
+
+    .filter-pill span {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 9999px;
+        border: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+        padding: 0.375rem 0.875rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-text-muted);
+        transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .filter-pill:hover span {
+        border-color: var(--color-brand-500);
+        color: var(--color-text);
+    }
+
+    .filter-pill input:checked + span {
+        border-color: var(--color-brand-600);
+        background-color: var(--color-brand-600);
+        color: #ffffff;
+    }
+
+    .filter-pill input:focus-visible + span {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+    }
+
+    .mileage-range__track {
+        position: relative;
+        height: 2rem;
+    }
+
+    .mileage-range__fill {
+        position: absolute;
+        top: 50%;
+        height: 0.375rem;
+        transform: translateY(-50%);
+        border-radius: 9999px;
+        background-color: var(--color-brand-600);
+        pointer-events: none;
+    }
+
+    .mileage-range__input {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        z-index: 2;
+        width: 100%;
+        height: 0.375rem;
+        margin: 0;
+        transform: translateY(-50%);
+        appearance: none;
+        background: transparent;
+        pointer-events: auto;
+    }
+
+    .mileage-range__input::-webkit-slider-runnable-track {
+        height: 0.375rem;
+        border-radius: 9999px;
+        background: var(--color-surface-3);
+    }
+
+    .mileage-range__input::-webkit-slider-thumb {
+        appearance: none;
+        width: 1.125rem;
+        height: 1.125rem;
+        margin-top: -0.375rem;
+        border-radius: 9999px;
+        border: 2px solid #ffffff;
+        background: var(--color-brand-600);
+        box-shadow: 0 1px 3px rgb(15 23 42 / 0.2);
+        cursor: grab;
+        pointer-events: auto;
+    }
+
+    .mileage-range__input::-moz-range-track {
+        height: 0.375rem;
+        border-radius: 9999px;
+        background: var(--color-surface-3);
+    }
+
+    .mileage-range__input::-moz-range-thumb {
+        width: 1.125rem;
+        height: 1.125rem;
+        border-radius: 9999px;
+        border: 2px solid #ffffff;
+        background: var(--color-brand-600);
+        box-shadow: 0 1px 3px rgb(15 23 42 / 0.2);
+        cursor: grab;
+        pointer-events: auto;
+    }
+
+    .mileage-range__input--max {
+        z-index: 2;
     }
 
     .listing-card-actions {
@@ -192,6 +345,59 @@
         .listing-row-photos-thumbs {
             width: 3.25rem;
         }
+    }
+
+    .dealers-directory-grid {
+        display: grid;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+        .dealers-directory-grid {
+            grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+        }
+
+        .dealers-directory-map-wrap {
+            position: sticky;
+            top: 5.5rem;
+        }
+    }
+
+    .dealers-directory-map {
+        min-height: 20rem;
+        height: 28rem;
+    }
+
+    @media (min-width: 1024px) {
+        .dealers-directory-map {
+            height: calc(100vh - 8rem);
+            min-height: 32rem;
+        }
+    }
+
+    .auction-lot-card-photo {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 12rem;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        background-color: var(--color-surface-3);
+    }
+
+    @media (min-width: 640px) {
+        .auction-lot-card-photo {
+            width: 14rem;
+            height: 7.5rem;
+        }
+    }
+
+    .auction-lot-card-photo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .tender-cards-grid {

@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Listing;
+use App\Models\ListingPriceChange;
+use App\Observers\ListingObserver;
+use App\Observers\ListingPriceChangeObserver;
 use App\Support\CloudConfiguration;
 use App\View\Composers\FooterComposer;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -33,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('components.footer', FooterComposer::class);
+
+        Listing::observe(ListingObserver::class);
+        ListingPriceChange::observe(ListingPriceChangeObserver::class);
 
         $this->app['events']->listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('apple', AppleProvider::class);

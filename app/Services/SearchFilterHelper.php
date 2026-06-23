@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\SearchScope;
 use Illuminate\Http\Request;
 
 class SearchFilterHelper
@@ -11,7 +12,7 @@ class SearchFilterHelper
     ];
 
     private const UI_KEYS = [
-        'page', 'sort', 'view', 'map_lat', 'map_lng', 'radius_km',
+        'page', 'sort', 'view', 'scope',
     ];
 
     private const EXTENDED_KEYS = [
@@ -82,16 +83,49 @@ class SearchFilterHelper
         return $filters;
     }
 
-    /** @param array<string, mixed> $filters */
-    public function searchUrlFromFilters(array $filters): string
+    public function formUrlFromRequest(Request $request, SearchScope $scope): string
     {
-        $filters = $this->normalizeFilters($filters);
+        $params = collect($request->query())
+            ->except(self::UI_KEYS)
+            ->put('scope', $scope->value)
+            ->filter(fn ($value) => $value !== null && $value !== '' && $value !== [])
+            ->all();
 
-        if ($filters === []) {
-            return route('search');
+        if ($params === []) {
+            return route('search.form', ['scope' => $scope->value]);
         }
 
-        return route('search').'?'.http_build_query($filters, '', '&', PHP_QUERY_RFC3986);
+        return route('search.form').'?'.http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+    }
+
+    public function resultsUrlFromRequest(Request $request, SearchScope $scope): string
+    {
+        $params = collect($request->query())
+            ->except(['page'])
+            ->filter(fn ($value) => $value !== null && $value !== '' && $value !== [])
+            ->all();
+
+        $route = route($scope->resultsRouteName());
+
+        if ($params === []) {
+            return $route;
+        }
+
+        return $route.'?'.http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+    }
+
+    /** @param array<string, mixed> $filters */
+    public function searchUrlFromFilters(array $filters, ?SearchScope $scope = null): string
+    {
+        $filters = $this->normalizeFilters($filters);
+        $scope ??= SearchScope::fromRequest($filters['scope'] ?? null);
+        unset($filters['scope']);
+
+        if ($filters === []) {
+            return route($scope->resultsRouteName());
+        }
+
+        return route($scope->resultsRouteName()).'?'.http_build_query($filters, '', '&', PHP_QUERY_RFC3986);
     }
 
     /** @param array<string, mixed> $filters */

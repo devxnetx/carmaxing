@@ -32,6 +32,7 @@
                     <option value="en" @selected($user->locale === 'en')>English</option>
                 </select>
             </div>
+            {{-- Day/night mode — disabled for now, will return later
             <div>
                 <label class="label">{{ __('messages.theme_light') }} / {{ __('messages.theme_dark') }}</label>
                 <select name="theme" class="input">
@@ -39,6 +40,7 @@
                     <option value="dark" @selected($user->theme === 'dark')>{{ __('messages.theme_dark') }}</option>
                 </select>
             </div>
+            --}}
         </div>
         @if($user->isPrivate())
             <div>

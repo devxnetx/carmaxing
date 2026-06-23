@@ -24,6 +24,10 @@ class User extends Authenticatable
         'account_type',
         'locale',
         'theme',
+        'subscribe_price_digest',
+        'subscribe_new_listings_digest',
+        'subscribe_news',
+        'subscription_prompted_at',
         'onboarding_completed_at',
         'tender_rules_accepted_at',
         'tender_rules_version',
@@ -37,6 +41,10 @@ class User extends Authenticatable
             'onboarding_completed_at' => 'datetime',
             'tender_rules_accepted_at' => 'datetime',
             'account_type' => AccountType::class,
+            'subscribe_price_digest' => 'boolean',
+            'subscribe_new_listings_digest' => 'boolean',
+            'subscribe_news' => 'boolean',
+            'subscription_prompted_at' => 'datetime',
         ];
     }
 
@@ -134,6 +142,26 @@ class User extends Authenticatable
     public function hasFavorited(int $listingId): bool
     {
         return $this->favorites()->where('listing_id', $listingId)->exists();
+    }
+
+    public function hasAnySubscription(): bool
+    {
+        return $this->subscribe_price_digest
+            || $this->subscribe_new_listings_digest
+            || $this->subscribe_news;
+    }
+
+    public function shouldShowSubscriptionPrompt(): bool
+    {
+        if ($this->hasAnySubscription()) {
+            return false;
+        }
+
+        if ($this->subscription_prompted_at === null) {
+            return true;
+        }
+
+        return $this->subscription_prompted_at->lte(now()->subWeek());
     }
 
     public function avatarUrl(): ?string

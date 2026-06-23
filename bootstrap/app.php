@@ -46,6 +46,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('searches:notify')->hourly();
 
+        $schedule->command('digests:price-changes')->dailyAt('08:00');
+        $schedule->command('digests:new-listings')->dailyAt('08:05');
+
         $schedule->command('tenders:close-expired')->everyMinute();
 
         $schedule->command('imports:reset-stale')->everyFifteenMinutes();

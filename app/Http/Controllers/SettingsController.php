@@ -27,7 +27,6 @@ class SettingsController extends Controller
     {
         $data = $request->validate([
             'locale' => ['required', 'in:bg,en'],
-            'theme' => ['required', 'in:light,dark'],
             'phone' => ['nullable', 'string', new BulgarianPhoneLocal],
         ]);
 
@@ -38,7 +37,6 @@ class SettingsController extends Controller
         $user->update($data);
 
         cookie()->queue('locale', $data['locale'], 60 * 24 * 365);
-        cookie()->queue('theme', $data['theme'], 60 * 24 * 365);
 
         return back()->with('success', __('messages.settings_saved'));
     }

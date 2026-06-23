@@ -13,4 +13,9 @@ enum ListingStatus: string
     {
         return $this === self::Published;
     }
+
+    public function isInactive(): bool
+    {
+        return in_array($this, [self::Archived, self::Sold], true);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\SearchScope;
 use App\Mail\SavedSearchAlertMail;
 use App\Models\SavedSearch;
 use Illuminate\Http\Request;
@@ -10,14 +11,22 @@ use Illuminate\Support\Facades\Mail;
 class SavedSearchAlertService
 {
     public function __construct(
-        private ListingSearchService $searchService,
+        private ListingSearchService $listingSearch,
+        private AuctionLotSearchService $importSearch,
     ) {}
 
     public function matchCount(SavedSearch $savedSearch): int
     {
-        $request = Request::create('/search', 'GET', $savedSearch->filters ?? []);
+        $filters = $savedSearch->filters ?? [];
+        $scope = SearchScope::fromRequest($filters['scope'] ?? null);
+        unset($filters['scope']);
 
-        return $this->searchService->count($request);
+        $request = Request::create(route($scope->resultsRouteName()), 'GET', $filters);
+
+        return match ($scope) {
+            SearchScope::Imports => $this->importSearch->count($request),
+            default => $this->listingSearch->count($request),
+        };
     }
 
     public function notifyDue(): int

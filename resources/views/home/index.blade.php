@@ -17,7 +17,18 @@
     </section>
 
     <section class="mb-10">
-        <x-search-form :brands="$allBrands" :regions="$regions" :feature-categories="$featureCategories" :countries="$countries" />
+        <x-search-form
+            :scope="$searchScope"
+            :brands="$allBrands"
+            :brand-counts="$brandCounts"
+            :region-counts="$regionCounts"
+            :regions="$regions"
+            :feature-categories="$featureCategories"
+            :countries="$countries"
+            :filters="$filters"
+            :show-extended-toggle="true"
+            scope-tab-target="home"
+        />
     </section>
 
     @if($expiringTenders->isNotEmpty())
@@ -45,14 +56,14 @@
         </section>
     @endif
 
-    @if($featuredListings->isNotEmpty())
+    @if($newestListings->isNotEmpty())
         <section>
             <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-lg font-semibold">{{ __('messages.sort_newest') }}</h2>
-                <a href="{{ route('search') }}" class="text-sm text-brand-600 hover:underline">{{ __('messages.search') }} →</a>
+                <h2 class="text-lg font-semibold">{{ __('messages.newest_cars') }}</h2>
+                <a href="{{ route('listings.newest') }}" class="text-sm text-brand-600 hover:underline">{{ __('messages.browse_more') }} →</a>
             </div>
             <div class="listing-cards-grid">
-                @foreach($featuredListings as $listing)
+                @foreach($newestListings as $listing)
                     <x-listing-grid-card :listing="$listing" :favorited="in_array($listing->id, $favoritedIds)" />
                 @endforeach
             </div>

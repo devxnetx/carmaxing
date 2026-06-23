@@ -15,6 +15,7 @@ class ListingPersistenceService
     public function __construct(
         private ListingGeoService $listingGeo,
         private ImageProcessor $imageProcessor,
+        private ListingShowService $listingShow,
     ) {}
 
     public function persist(Listing $listing, Request $request, ?User $actingUser = null): Listing
@@ -71,6 +72,8 @@ class ListingPersistenceService
 
         $this->removeListingImages($listing, $request->input('remove_images', []));
         $this->storeListingImages($listing, $request->file('images', []));
+
+        $this->listingShow->forget($listing);
 
         return $listing;
     }

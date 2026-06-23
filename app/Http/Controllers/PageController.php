@@ -14,13 +14,4 @@ class PageController extends Controller
         ]);
     }
 
-    public function contact(): View
-    {
-        return view('pages.contact', [
-            'title' => __('pages.contact.title'),
-            'intro' => __('pages.contact.intro'),
-            'email' => config('site.contact_email', config('mail.from.address')),
-            'phone' => config('site.contact_phone'),
-        ]);
-    }
 }

@@ -5,7 +5,9 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\CompareController;
 use App\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DealersController;
 use App\Http\Controllers\DocsApiPlaygroundController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\FavoriteController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ListingContactController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\NewestListingsController;
 use App\Http\Controllers\ListingPhoneClickController;
 use App\Http\Controllers\ListingReportController;
 use App\Http\Controllers\LocaleController;
@@ -25,6 +28,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SearchHistoryController;
 use App\Http\Controllers\MyTenderController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TenderBidController;
 use App\Http\Controllers\TenderController;
@@ -35,8 +39,12 @@ Route::get('/sitemap.xml', [SitemapController::class, 'xml'])->name('sitemap');
 Route::get('/sitemap', [SitemapController::class, 'html'])->name('sitemap.page');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/newest', [NewestListingsController::class, 'index'])->name('listings.newest');
+Route::get('/search/form', [SearchController::class, 'form'])->name('search.form');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
-Route::get('/api/search/map-markers', [SearchController::class, 'mapMarkers'])->name('search.map-markers');
+Route::get('/search-imports', [SearchController::class, 'imports'])->name('search.imports');
+Route::get('/search-auctions', [SearchController::class, 'auctions'])->name('search.auctions');
+
 Route::get('/compare', [CompareController::class, 'index'])->name('compare.index');
 Route::post('/compare/{listing:slug}/add', [CompareController::class, 'add'])->name('compare.add');
 Route::post('/compare/{listing:slug}/remove', [CompareController::class, 'remove'])->name('compare.remove');
@@ -45,13 +53,16 @@ Route::get('/compare/state', [CompareController::class, 'state'])->name('compare
 Route::get('/api/brands/{brand}/models', [SearchController::class, 'models'])->name('brands.models');
 Route::get('/api/brands/{brand}/model-tree', [SearchController::class, 'modelTree'])->name('brands.model-tree');
 Route::get('/api/regions/{region}/cities', [SearchController::class, 'cities'])->name('regions.cities');
+Route::get('/api/regions/{region}/dealer-cities', [DealersController::class, 'cities'])->name('regions.dealer-cities');
 
+Route::get('/dealers', [DealersController::class, 'index'])->name('dealers.index');
 Route::get('/dealers/{company:slug}', [CompanyController::class, 'show'])->name('company.show');
 
 Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/docs/api', [DocsController::class, 'api'])->name('docs.api');
 Route::get('/about', [PageController::class, 'about'])->name('pages.about');
-Route::get('/contact', [PageController::class, 'contact'])->name('pages.contact');
+Route::get('/contact', [ContactController::class, 'show'])->name('pages.contact');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('pages.contact.store');
 Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/cookies', [LegalController::class, 'cookies'])->name('legal.cookies');
@@ -86,6 +97,11 @@ Route::middleware(['auth', 'onboarding'])->group(function () {
     Route::get('/listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
     Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
     Route::post('/listings/{listing}/archive', [ListingController::class, 'archive'])->name('listings.archive');
+    Route::post('/listings/{listing}/unarchive', [ListingController::class, 'unarchive'])->name('listings.unarchive');
+
+    Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::patch('/subscriptions', [SubscriptionController::class, 'update'])->name('subscriptions.update');
+    Route::post('/subscriptions/dismiss-prompt', [SubscriptionController::class, 'dismissPrompt'])->name('subscriptions.dismiss-prompt');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');

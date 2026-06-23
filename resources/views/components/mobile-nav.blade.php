@@ -30,7 +30,9 @@
             <nav class="flex-1 overflow-y-auto p-4">
                 <div class="space-y-1">
                     <a href="{{ route('home') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium hover:bg-[var(--color-surface-3)]">{{ __('messages.home') }}</a>
-                    <a href="{{ route('search') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium hover:bg-[var(--color-surface-3)]">{{ __('messages.search') }}</a>
+                    <a href="{{ route('search.form') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium hover:bg-[var(--color-surface-3)]">{{ __('messages.search') }}</a>
+                    <a href="{{ route('dealers.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium hover:bg-[var(--color-surface-3)]">{{ __('messages.dealers_nav') }}</a>
+                    <a href="{{ route('listings.newest') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium hover:bg-[var(--color-surface-3)]">{{ __('messages.newest_nav') }}</a>
                     <a href="{{ route('docs.api') }}" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium hover:bg-[var(--color-surface-3)]">{{ __('messages.api_docs') }}</a>
                 </div>
 

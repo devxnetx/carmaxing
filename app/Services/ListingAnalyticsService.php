@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ListingStatus;
 use App\Models\Listing;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -20,13 +21,20 @@ class ListingAnalyticsService
     }
 
     /** @return Collection<int, array{listing: Listing, stats: array}> */
-    public function statsForUser(User $user): Collection
+    public function statsForUser(User $user, string $tab = 'active'): Collection
     {
-        return $user->listings()
+        $query = $user->listings()
             ->with(['brand', 'model.parent', 'images'])
             ->withCount('favorites')
-            ->latest()
-            ->get()
+            ->latest();
+
+        if ($tab === 'archived') {
+            $query->whereIn('status', [ListingStatus::Archived, ListingStatus::Sold]);
+        } else {
+            $query->whereNotIn('status', [ListingStatus::Archived, ListingStatus::Sold]);
+        }
+
+        return $query->get()
             ->map(fn (Listing $listing) => [
                 'listing' => $listing,
                 'stats' => [

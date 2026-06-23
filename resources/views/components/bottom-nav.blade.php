@@ -4,7 +4,7 @@
             <x-icon name="home" class="h-5 w-5" />
             <span>{{ __('messages.home') }}</span>
         </a>
-        <a href="{{ route('search') }}" class="flex flex-1 flex-col items-center gap-0.5 px-2 py-2.5 text-[10px] {{ request()->routeIs('search') ? 'text-brand-600' : 'text-[var(--color-text-muted)]' }}">
+        <a href="{{ route('search.form') }}" class="flex flex-1 flex-col items-center gap-0.5 px-2 py-2.5 text-[10px] {{ request()->routeIs('search*') ? 'text-brand-600' : 'text-[var(--color-text-muted)]' }}">
             <x-icon name="search" class="h-5 w-5" />
             <span>{{ __('messages.search') }}</span>
         </a>

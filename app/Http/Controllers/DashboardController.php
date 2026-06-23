@@ -14,7 +14,12 @@ class DashboardController extends Controller
     public function index(): View
     {
         $user = auth()->user();
-        $listingStats = $this->analytics->statsForUser($user);
+        $tab = request()->query('tab', 'active');
+        if (! in_array($tab, ['active', 'archived'], true)) {
+            $tab = 'active';
+        }
+
+        $listingStats = $this->analytics->statsForUser($user, $tab);
         $totals = [
             'views' => $listingStats->sum(fn ($row) => $row['stats']['views']),
             'favorites' => $listingStats->sum(fn ($row) => $row['stats']['favorites']),
@@ -22,6 +27,6 @@ class DashboardController extends Controller
             'phone_clicks' => $listingStats->sum(fn ($row) => $row['stats']['phone_clicks']),
         ];
 
-        return view('dashboard.index', compact('listingStats', 'totals', 'user'));
+        return view('dashboard.index', compact('listingStats', 'totals', 'user', 'tab'));
     }
 }

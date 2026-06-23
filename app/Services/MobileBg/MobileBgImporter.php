@@ -9,6 +9,7 @@ use App\Models\Listing;
 use App\Models\ListingImage;
 use App\Models\MobileBgImportRun;
 use App\Services\ImageProcessor;
+use App\Services\ListingShowService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -21,6 +22,7 @@ class MobileBgImporter
         private readonly MobileBgScraper $scraper,
         private readonly MobileBgCatalogMapper $catalog,
         private readonly ImageProcessor $imageProcessor,
+        private readonly ListingShowService $listingShow,
     ) {}
 
     public function run(MobileBgImportRun $run, bool $syncImages = true): MobileBgImportRun
@@ -145,6 +147,8 @@ class MobileBgImporter
             if ($syncImages && $ad->imageUrls !== []) {
                 $this->syncImages($listing, $ad->imageUrls);
             }
+
+            $this->listingShow->forget($listing);
 
             return $isNew ? 'created' : 'updated';
         });

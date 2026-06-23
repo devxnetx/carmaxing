@@ -25,18 +25,26 @@
                     <x-admin-nav />
                 </nav>
                 <div class="border-t border-[var(--color-border)] p-4">
-                    <a href="{{ route('home') }}" class="text-sm text-brand-600 hover:underline">{{ __('admin.back_to_site') }}</a>
+                    <a href="{{ route('home') }}" class="btn-secondary w-full text-sm">
+                        <x-icon name="home" class="h-4 w-4" />
+                        {{ __('admin.back_to_site') }}
+                    </a>
                 </div>
             </div>
         </aside>
 
         <div class="flex min-w-0 flex-1 flex-col">
-            <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 lg:hidden">
+            <header class="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 lg:px-8">
                 <div class="flex items-center justify-between gap-3">
-                    <a href="{{ route('admin.dashboard') }}" class="font-bold text-brand-600">{{ __('admin.title') }}</a>
-                    <a href="{{ route('home') }}" class="text-sm text-[var(--color-text-muted)]">{{ __('admin.back_to_site') }}</a>
+                    <a href="{{ route('admin.dashboard') }}" class="font-bold text-brand-600 lg:hidden">{{ __('admin.title') }}</a>
+                    <div class="hidden text-sm text-[var(--color-text-muted)] lg:block">{{ config('app.name') }} {{ __('admin.title') }}</div>
+                    <a href="{{ route('home') }}" class="btn-secondary shrink-0 text-sm">
+                        <x-icon name="home" class="h-4 w-4" />
+                        <span class="hidden sm:inline">{{ __('admin.back_to_site') }}</span>
+                        <span class="sm:hidden">{{ __('admin.back_to_site_short') }}</span>
+                    </a>
                 </div>
-                <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                <div class="mt-3 flex flex-wrap gap-2 text-xs lg:hidden">
                     <x-admin-nav :mobile="true" />
                 </div>
             </header>

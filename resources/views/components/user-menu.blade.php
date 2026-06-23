@@ -53,6 +53,9 @@
             <a href="{{ route('saved-searches.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--color-surface-3)]" role="menuitem">
                 <x-icon name="bell" class="h-4 w-4 text-[var(--color-text-muted)]" />{{ __('messages.saved_searches') }}
             </a>
+            <a href="{{ route('subscriptions.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--color-surface-3)]" role="menuitem">
+                <x-icon name="bell" class="h-4 w-4 text-[var(--color-text-muted)]" />{{ __('messages.subscriptions') }}
+            </a>
             <a href="{{ route('search-history.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--color-surface-3)]" role="menuitem">
                 <x-icon name="clock" class="h-4 w-4 text-[var(--color-text-muted)]" />{{ __('messages.search_history') }}
             </a>

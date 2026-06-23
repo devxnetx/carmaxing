@@ -80,4 +80,70 @@ class AuctionLot extends Model
     {
         return $this->belongsTo(BidCarsImportRun::class, 'bid_cars_import_run_id');
     }
+
+    public function vehicleName(): string
+    {
+        $name = trim(implode(' ', array_filter([
+            $this->year,
+            $this->brand?->name,
+            $this->model?->parent?->name,
+            $this->model?->name,
+            $this->car_variant,
+        ])));
+
+        return $name !== '' ? $name : (string) $this->title;
+    }
+
+    public function detailUrl(): string
+    {
+        return $this->source_url ?: 'https://bid.cars/en/lot/'.$this->external_lot;
+    }
+
+    public function mainImageUrl(): ?string
+    {
+        $images = is_array($this->images) ? $this->images : [];
+        $mainImage = $images[0] ?? null;
+
+        if (! is_string($mainImage) && is_array($mainImage)) {
+            return $mainImage['url'] ?? $mainImage['src'] ?? null;
+        }
+
+        return is_string($mainImage) ? $mainImage : null;
+    }
+
+    public function auctionTimeLabel(): ?string
+    {
+        if ($this->time_left_seconds > 0) {
+            return __('messages.auction_time_left', ['time' => $this->formatDuration($this->time_left_seconds)]);
+        }
+
+        if (filled($this->prebid_close_time)) {
+            return __('messages.auction_closes_at', ['time' => $this->prebid_close_time]);
+        }
+
+        return null;
+    }
+
+    private function formatDuration(int $seconds): string
+    {
+        $days = intdiv($seconds, 86_400);
+        $hours = intdiv($seconds % 86_400, 3_600);
+        $minutes = intdiv($seconds % 3_600, 60);
+
+        $parts = [];
+
+        if ($days > 0) {
+            $parts[] = $days.'d';
+        }
+
+        if ($hours > 0) {
+            $parts[] = $hours.'h';
+        }
+
+        if ($minutes > 0 || $parts === []) {
+            $parts[] = max(1, $minutes).'m';
+        }
+
+        return implode(' ', $parts);
+    }
 }

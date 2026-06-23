@@ -31,6 +31,15 @@
         </div>
     </div>
 
+    <div class="mt-6 flex flex-wrap gap-2">
+        <a href="{{ route('dashboard', ['tab' => 'active']) }}" class="rounded-lg px-4 py-2 text-sm font-medium {{ ($tab ?? 'active') === 'active' ? 'bg-brand-600 text-white' : 'border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-3)]' }}">
+            {{ __('messages.listings_tab_active') }}
+        </a>
+        <a href="{{ route('dashboard', ['tab' => 'archived']) }}" class="rounded-lg px-4 py-2 text-sm font-medium {{ ($tab ?? 'active') === 'archived' ? 'bg-brand-600 text-white' : 'border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-3)]' }}">
+            {{ __('messages.listings_tab_archived') }}
+        </a>
+    </div>
+
     <div class="mt-6 grid gap-3 sm:grid-cols-4">
         <a href="{{ route('listings.create') }}" class="card flex items-center gap-3 p-4 transition hover:border-brand-500">
             <x-icon name="plus" class="h-5 w-5 text-brand-600" />
@@ -43,6 +52,10 @@
         <a href="{{ route('saved-searches.index') }}" class="card flex items-center gap-3 p-4 transition hover:border-brand-500">
             <x-icon name="bell" class="h-5 w-5 text-brand-600" />
             <span class="text-sm font-medium">{{ __('messages.saved_searches') }}</span>
+        </a>
+        <a href="{{ route('subscriptions.index') }}" class="card flex items-center gap-3 p-4 transition hover:border-brand-500">
+            <x-icon name="bell" class="h-5 w-5 text-brand-600" />
+            <span class="text-sm font-medium">{{ __('messages.subscriptions') }}</span>
         </a>
         <a href="{{ route('search-history.index') }}" class="card flex items-center gap-3 p-4 transition hover:border-brand-500">
             <x-icon name="clock" class="h-5 w-5 text-brand-600" />
@@ -99,8 +112,15 @@
                     <span>{{ __('messages.stats_inquiries') }}: <strong class="text-[var(--color-text)]">{{ number_format($stats['inquiries']) }}</strong></span>
                     <span>{{ __('messages.stats_phone_clicks') }}: <strong class="text-[var(--color-text)]">{{ number_format($stats['phone_clicks']) }}</strong></span>
                 </div>
-                <div class="mt-3 flex gap-3 text-sm">
-                    <a href="{{ route('listings.edit', $listing) }}" class="text-brand-600 hover:underline">{{ __('messages.edit') }}</a>
+                <div class="mt-3 flex flex-wrap gap-3 text-sm">
+                    @if($listing->status->isInactive())
+                        <form method="POST" action="{{ route('listings.unarchive', $listing) }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-brand-600 hover:underline">{{ __('messages.unarchive') }}</button>
+                        </form>
+                    @else
+                        <a href="{{ route('listings.edit', $listing) }}" class="text-brand-600 hover:underline">{{ __('messages.edit') }}</a>
+                    @endif
                     <a href="{{ route('listings.show', $listing) }}" class="text-[var(--color-text-muted)] hover:underline">{{ __('messages.view') }}</a>
                 </div>
             </div>
@@ -148,7 +168,14 @@
                             <span class="badge bg-[var(--color-surface-3)]">{{ $listing->status->value }}</span>
                         </td>
                         <td class="px-4 py-3 text-right">
-                            <a href="{{ route('listings.edit', $listing) }}" class="text-brand-600 hover:underline">{{ __('messages.edit') }}</a>
+                            @if($listing->status->isInactive())
+                                <form method="POST" action="{{ route('listings.unarchive', $listing) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-brand-600 hover:underline">{{ __('messages.unarchive') }}</button>
+                                </form>
+                            @else
+                                <a href="{{ route('listings.edit', $listing) }}" class="text-brand-600 hover:underline">{{ __('messages.edit') }}</a>
+                            @endif
                         </td>
                     </tr>
                 @empty

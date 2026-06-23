@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SearchScope;
 use App\Models\SavedSearch;
 use App\Services\SearchFilterHelper;
 use Illuminate\Http\RedirectResponse;
@@ -32,8 +33,9 @@ class SavedSearchController extends Controller
         ]);
 
         $filters = $this->filterHelper->filtersFromRequest($request);
+        $filters['scope'] = SearchScope::fromRequest($request->input('scope'))->value;
 
-        if ($filters === []) {
+        if (count($filters) === 1 && isset($filters['scope'])) {
             return back()->with('error', __('messages.saved_search_empty'));
         }
 

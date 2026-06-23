@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Enums\ListingStatus;
 use App\Models\Listing;
-use App\Models\VehicleModel;
 use App\Support\GeoCatalog;
 use App\Support\LocationCatalog;
 use Illuminate\Database\Eloquent\Builder;
@@ -51,7 +50,7 @@ class ListingSearchService
             $query->where('brand_id', $brandId);
         }
 
-        if ($modelIds = $this->resolveModelIds($request)) {
+        if ($modelIds = SearchModelFilter::resolveIds($request)) {
             $query->whereIn('model_id', $modelIds);
         }
 
@@ -222,26 +221,6 @@ class ListingSearchService
                 'price_on_request' => $listing->price_on_request,
                 'url' => route('listings.show', $listing),
             ]);
-    }
-
-    private function resolveModelIds(Request $request): array
-    {
-        $ids = [];
-
-        if ($request->filled('model_ids')) {
-            $ids = array_map('intval', (array) $request->input('model_ids'));
-        } elseif ($request->filled('series_ids')) {
-            foreach ((array) $request->input('series_ids') as $seriesId) {
-                $series = VehicleModel::query()->find($seriesId);
-                if ($series) {
-                    $ids = array_merge($ids, $series->descendantIds());
-                }
-            }
-        } elseif ($request->filled('model_id')) {
-            $ids = [$request->integer('model_id')];
-        }
-
-        return array_unique($ids);
     }
 
     /** @return array<int|string, mixed> */

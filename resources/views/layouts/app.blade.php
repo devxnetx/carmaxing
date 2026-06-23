@@ -59,16 +59,17 @@
                     <a href="{{ route('locale.switch', 'en') }}" class="px-2 py-1.5 {{ app()->getLocale() === 'en' ? 'bg-brand-600 text-white rounded-lg' : '' }}">EN</a>
                 </div>
 
+                {{-- Day/night mode — disabled for now, will return later
                 <div x-data="themeToggle" class="hidden rounded-lg border border-[var(--color-border)] p-0.5 sm:flex">
                     <button @click="theme !== 'light' && toggle()" :class="theme === 'light' ? 'bg-brand-600 text-white' : ''" class="rounded-md px-2 py-1 text-xs">☀</button>
                     <button @click="theme !== 'dark' && toggle()" :class="theme === 'dark' ? 'bg-brand-600 text-white' : ''" class="rounded-md px-2 py-1 text-xs">☾</button>
                 </div>
+                --}}
 
                 <nav class="hidden items-center gap-1 lg:flex">
-                    <a href="{{ route('search') }}" class="btn-secondary text-sm">{{ __('messages.search') }}</a>
-                    @if(\App\Support\TendersNavigation::isVisible())
-                        <a href="{{ route('tenders.index') }}" class="btn-secondary text-sm">{{ __('messages.tenders') }}</a>
-                    @endif
+                    <a href="{{ route('search.form') }}" class="btn-secondary text-sm">{{ __('messages.search') }}</a>
+                    <a href="{{ route('dealers.index') }}" class="btn-secondary text-sm">{{ __('messages.dealers_nav') }}</a>
+                    <a href="{{ route('listings.newest') }}" class="btn-secondary text-sm">{{ __('messages.newest_nav') }}</a>
                     @guest
                         <a href="{{ route('login') }}" class="btn-primary text-sm">{{ __('messages.login') }}</a>
                     @else
@@ -119,6 +120,7 @@
     <x-bottom-nav />
     <x-compare-tray />
     <x-cookie-consent />
+    <x-subscription-prompt-modal />
     @stack('scripts')
     @vite(['resources/js/app.js'])
 </body>

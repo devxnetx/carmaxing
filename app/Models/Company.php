@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\GeoCatalog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -70,6 +71,39 @@ class Company extends Model
     public function isVerifiedDealer(): bool
     {
         return $this->is_verified && $this->verified_at !== null;
+    }
+
+    /** @return array{lat: float, lng: float}|null */
+    public function mapCoordinates(): ?array
+    {
+        if ($this->latitude && $this->longitude) {
+            return [
+                'lat' => (float) $this->latitude,
+                'lng' => (float) $this->longitude,
+            ];
+        }
+
+        $this->loadMissing('region');
+        $coords = GeoCatalog::coordinatesForRegion($this->region);
+
+        if (! $coords) {
+            return null;
+        }
+
+        return [
+            'lat' => $coords['lat'] + (($this->id % 17) - 8) * 0.008,
+            'lng' => $coords['lng'] + (($this->id % 13) - 6) * 0.008,
+        ];
+    }
+
+    public function locationLabel(): ?string
+    {
+        $parts = array_filter([
+            $this->city,
+            $this->relationLoaded('region') ? $this->region?->name : null,
+        ]);
+
+        return $parts !== [] ? implode(', ', $parts) : null;
     }
 
     public function logoUrl(): ?string

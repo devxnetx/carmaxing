@@ -6,7 +6,7 @@ use App\Enums\ListingStatus;
 use App\Models\Listing;
 use App\Support\CatalogCache;
 use App\Services\ListingPersistenceService;
-use App\Services\MarketValueService;
+use App\Services\ListingShowService;
 use App\Services\RecentlyViewedService;
 use App\Support\LocationCatalog;
 use Illuminate\Http\Request;
@@ -16,85 +16,35 @@ class ListingController extends Controller
 {
     public function __construct(
         private RecentlyViewedService $recentlyViewed,
-        private MarketValueService $marketValue,
+        private ListingShowService $listingShow,
         private ListingPersistenceService $listingPersistence,
     ) {}
 
     public function show(Request $request, Listing $listing): View
     {
-        abort_unless($listing->status === ListingStatus::Published || auth()->id() === $listing->user_id, 404);
+        $isOwner = auth()->id() === $listing->user_id;
+        $isPubliclyViewable = $listing->status === ListingStatus::Published
+            || $listing->status->isInactive();
 
-        if ($listing->status === ListingStatus::Published && auth()->id() !== $listing->user_id) {
+        abort_unless($isPubliclyViewable || $isOwner, 404);
+
+        if ($listing->status === ListingStatus::Published && ! $isOwner) {
             $listing->increment('views_count');
             $this->recentlyViewed->record($listing, $request);
         }
 
-        $listing->load([
-            'brand',
-            'model.parent',
-            'region',
-            'images',
-            'features.category',
-            'user',
-            'priceChanges',
-            'company' => fn ($query) => $query
-                ->with('region')
-                ->withCount([
-                    'listings as listings_count' => fn ($q) => $q->where('status', ListingStatus::Published),
-                ]),
-        ]);
-
-        $featureCategories = $listing->features
-            ->groupBy(fn ($feature) => $feature->category_id)
-            ->map(function ($features) {
-                $category = $features->first()->category;
-
-                return (object) [
-                    'name' => $category->name,
-                    'sort_order' => $category->sort_order,
-                    'features' => $features->sortBy('sort_order')->values(),
-                ];
-            })
-            ->sortBy('sort_order')
-            ->values();
-
-        $dealerListings = $listing->company_id
-            ? Listing::query()
-                ->published()
-                ->where('company_id', $listing->company_id)
-                ->where('id', '!=', $listing->id)
-                ->with(['brand', 'model.parent', 'images', 'region', 'features', 'company'])
-                ->latest('published_at')
-                ->limit(4)
-                ->get()
-            : collect();
-
-        $similar = Listing::query()
-            ->published()
-            ->where('brand_id', $listing->brand_id)
-            ->where('id', '!=', $listing->id)
-            ->with(['brand', 'model.parent', 'images', 'region', 'features', 'company'])
-            ->limit(4)
-            ->get();
+        $showData = $this->listingShow->cachedShowData($listing);
 
         $isFavorited = auth()->check() && auth()->user()->hasFavorited($listing->id);
         $favoritedIds = auth()->check()
             ? auth()->user()->favorites()->pluck('listing_id')->all()
             : [];
 
-        $marketEstimate = $this->marketValue->estimate($listing);
-        $latestPriceChange = $listing->priceChanges->first();
-
-        return view('listings.show', compact(
-            'listing',
-            'similar',
-            'dealerListings',
-            'featureCategories',
-            'isFavorited',
-            'favoritedIds',
-            'marketEstimate',
-            'latestPriceChange',
-        ));
+        return view('listings.show', [
+            ...$showData,
+            'isFavorited' => $isFavorited,
+            'favoritedIds' => $favoritedIds,
+        ]);
     }
 
     public function create(): View
@@ -150,6 +100,18 @@ class ListingController extends Controller
         $listing->archive();
 
         return redirect()->route('dashboard')->with('success', __('messages.listing_archived'));
+    }
+
+    public function unarchive(Listing $listing)
+    {
+        abort_unless(auth()->id() === $listing->user_id, 403);
+        abort_unless($listing->status->isInactive(), 403);
+
+        $listing->publish();
+
+        return redirect()
+            ->route('dashboard', ['tab' => 'archived'])
+            ->with('success', __('messages.listing_unarchived'));
     }
 
     private function authorizeListing(): void

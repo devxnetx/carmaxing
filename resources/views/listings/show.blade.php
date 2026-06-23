@@ -20,6 +20,12 @@
 @section('meta_image_alt', $listing->composeDisplayTitle())
 @section('meta_type', 'article')
 
+@if($listing->status->isInactive())
+    @push('meta')
+        <meta name="robots" content="noindex, nofollow">
+    @endpush
+@endif
+
 @push('jsonld')
     <x-seo.breadcrumb-jsonld :items="[
         ['name' => __('messages.home'), 'url' => route('home')],
@@ -44,6 +50,12 @@
         ['name' => $listing->breadcrumbModelName(), 'url' => route('search', ['brand_id' => $listing->brand_id, 'model_id' => $listing->model_id])],
         ['name' => $listing->breadcrumbAdName()],
     ]" />
+
+    @if($listing->status->isInactive())
+        <div class="no-print mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+            {{ __('messages.listing_archived_banner') }}
+        </div>
+    @endif
 
     <div class="grid gap-8 lg:grid-cols-3">
         <div class="order-2 space-y-6 lg:order-1 lg:col-span-2">

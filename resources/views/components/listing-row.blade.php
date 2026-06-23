@@ -79,6 +79,8 @@
                 <p class="mt-1.5 line-clamp-2 text-xs text-[var(--color-text-muted)]">{{ $featureExcerpt }}</p>
             @endif
 
+            <x-listing-card-dates :listing="$listing" class="mt-1.5" />
+
             <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--color-text-muted)]">
                     @if($listing->locationLabel())
                         <span>

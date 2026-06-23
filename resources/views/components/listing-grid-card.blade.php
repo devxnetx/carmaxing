@@ -103,6 +103,8 @@
             </p>
         @endif
 
+        <x-listing-card-dates :listing="$listing" class="mt-1" />
+
         <div class="mt-auto flex items-end justify-between gap-2 pt-1.5">
             <div class="min-w-0 text-xs text-[var(--color-text-muted)]">
                 @if($listing->locationLabel())
