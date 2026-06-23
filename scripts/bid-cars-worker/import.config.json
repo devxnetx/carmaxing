@@ -1,0 +1,34 @@
+{
+  // Laravel site that receives scraped lots (/api/v1/bid-cars/import is appended automatically)
+  "backendDomain": "https://carmaxing.online",
+
+  // Same value as BID_CARS_IMPORT_API_KEY on the server
+  "apiKey": "c95ef638fb2ea0fbb07c5fed17d0df6de97d80f1f5ae7c1d38c0ff4ff51f32b7",
+
+  // Makes to scrape from bid.cars (one browser session per brand)
+  //
+  // Mission brands — copy-paste into "brands":
+  // ["Audi", "BMW", "Mercedes-Benz"]
+  "brands": ["Audi", "BMW", "Mercedes-Benz"],
+
+  // How many "Load More" pages per brand (~50 lots each)
+  // Use a number, e.g. 3 — or "full" to keep loading until bid.cars has no more results
+  "pagesPerBrand": 3,
+
+  // false = visible Chrome (recommended for Cloudflare), true = headless
+  "headless": false,
+
+  "filters": {
+    "search-type": "filters",
+    "status": "All",
+    "type": "Automobile",
+    "model": "All",
+    "year-from": "2005",
+    "year-to": "2027",
+    "auction-type": "All",
+    "start-code": "Run and Drive",
+    "transmission": "Automatic",
+    "engine-hp-from": "148",
+    "estimated-min": "4500"
+  }
+}

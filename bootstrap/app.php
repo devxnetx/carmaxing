@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthenticateBidCarsImportApiKey;
 use App\Http\Middleware\AuthenticateCompanyApiKey;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use App\Http\Middleware\EnsureTendersEnabled;
@@ -38,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'onboarding' => EnsureOnboardingComplete::class,
             'admin' => EnsureUserIsAdmin::class,
             'company.api' => AuthenticateCompanyApiKey::class,
+            'bid-cars.import' => AuthenticateBidCarsImportApiKey::class,
             'tenders.enabled' => EnsureTendersEnabled::class,
         ]);
     })

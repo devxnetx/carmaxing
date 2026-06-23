@@ -1,0 +1,12 @@
+{
+  "name": "bid-cars-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pull": "node worker.mjs",
+    "install-browser": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.52.0"
+  }
+}

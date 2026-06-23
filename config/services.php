@@ -53,4 +53,6 @@ return [
         'redirect' => env('APPLE_REDIRECT_URI', env('APP_URL').'/auth/apple/callback'),
     ],
 
+    'bid_cars' => require __DIR__.'/bid_cars.php',
+
 ];
