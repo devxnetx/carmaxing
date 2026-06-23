@@ -40,19 +40,13 @@ class TenderImage extends Model
             return $this->path;
         }
 
-        $candidates = match ($size) {
-            'thumb' => array_filter([$this->path_thumb, $this->path_medium, $this->path]),
-            'medium' => array_filter([$this->path_medium, $this->path]),
-            default => [$this->path],
+        $path = match ($size) {
+            'thumb' => $this->path_thumb ?? $this->path_medium ?? $this->path,
+            'medium' => $this->path_medium ?? $this->path,
+            default => $this->path,
         };
 
-        foreach ($candidates as $path) {
-            if (Storage::disk('public')->exists($path)) {
-                return Storage::disk('public')->url($path);
-            }
-        }
-
-        return Storage::disk('public')->url($this->path);
+        return Storage::disk('public')->url($path);
     }
 
     public function deleteFiles(): void

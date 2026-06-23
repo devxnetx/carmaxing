@@ -40,19 +40,7 @@ class ListingImage extends Model
             return $this->path;
         }
 
-        $candidates = match ($size) {
-            'thumb' => array_filter([$this->path_thumb, $this->path_medium, $this->path]),
-            'medium' => array_filter([$this->path_medium, $this->path]),
-            default => [$this->path],
-        };
-
-        foreach ($candidates as $path) {
-            if (Storage::disk('public')->exists($path)) {
-                return Storage::disk('public')->url($path);
-            }
-        }
-
-        return Storage::disk('public')->url($this->path);
+        return Storage::disk('public')->url($this->pathForSize($size));
     }
 
     public function srcset(): string
@@ -61,19 +49,29 @@ class ListingImage extends Model
             return $this->path.' 1x';
         }
 
+        $disk = Storage::disk('public');
         $parts = [];
 
         if ($this->path_thumb) {
-            $parts[] = $this->url('thumb').' 320w';
+            $parts[] = $disk->url($this->path_thumb).' 320w';
         }
 
         if ($this->path_medium) {
-            $parts[] = $this->url('medium').' 800w';
+            $parts[] = $disk->url($this->path_medium).' 800w';
         }
 
-        $parts[] = $this->url('large').' '.($this->width ?: 1600).'w';
+        $parts[] = $disk->url($this->path).' '.($this->width ?: 1600).'w';
 
         return implode(', ', $parts);
+    }
+
+    private function pathForSize(string $size): string
+    {
+        return match ($size) {
+            'thumb' => $this->path_thumb ?? $this->path_medium ?? $this->path,
+            'medium' => $this->path_medium ?? $this->path,
+            default => $this->path,
+        };
     }
 
     public function sizesAttribute(): string
