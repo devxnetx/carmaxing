@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Region;
 use App\Models\Tender;
 use App\Models\TenderBid;
-use App\Models\VehicleBrand;
+use App\Support\CatalogCache;
 use App\Services\Tenders\TenderBidService;
 use App\Services\Tenders\TenderPersistenceService;
 use Illuminate\Http\RedirectResponse;
@@ -33,8 +32,8 @@ class MyTenderController extends Controller
     public function create(): View
     {
         return view('tenders.my.create', [
-            'brands' => VehicleBrand::query()->orderBy('name')->get(),
-            'regions' => Region::query()->orderBy('sort_order')->get(),
+            'brands' => CatalogCache::brands(),
+            'regions' => CatalogCache::regions(),
             'durationOptions' => $this->persistence->durationOptions(),
             'bidIncrements' => config('tenders.allowed_bid_increments', [100]),
             'defaultBidIncrement' => config('tenders.default_bid_increment', 100),

@@ -49,6 +49,12 @@ class Listing extends Model
 
     protected static function booted(): void
     {
+        static::saved(function (Listing $listing) {
+            if ($listing->wasChanged('status')) {
+                \Illuminate\Support\Facades\Cache::forget('stats:published_listings');
+            }
+        });
+
         static::saving(function (Listing $listing) {
             if ($listing->brand_id && $listing->model_id) {
                 $listing->loadMissing(['brand', 'model.parent']);

@@ -3,19 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
-use App\Models\Region;
 use App\Models\Tender;
-use App\Models\VehicleBrand;
-use App\Models\VehicleFeatureCategory;
+use App\Services\ListingSearchService;
 use App\Services\RecentlyViewedService;
+use App\Support\CatalogCache;
 use App\Support\LocationCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
     public function __construct(
         private RecentlyViewedService $recentlyViewed,
+        private ListingSearchService $searchService,
     ) {}
 
     public function index(Request $request): View
@@ -32,12 +33,17 @@ class HomeController extends Controller
                 ->orderBy('ends_at')
                 ->limit(6)
                 ->get(),
-            'allBrands' => VehicleBrand::query()->orderBy('name')->get(),
-            'regions' => Region::query()->orderBy('sort_order')->get(),
-            'featureCategories' => VehicleFeatureCategory::query()->with('features')->orderBy('sort_order')->get(),
-            'featuredListings' => Listing::query()->published()->with(['brand', 'model.parent', 'images', 'company', 'region', 'features'])->latest('published_at')->limit(12)->get(),
+            'allBrands' => CatalogCache::brands(),
+            'regions' => CatalogCache::regions(),
+            'featureCategories' => CatalogCache::featureCategories(),
+            'featuredListings' => Listing::query()
+                ->published()
+                ->with($this->searchService->gridEagerLoads())
+                ->latest('published_at')
+                ->limit(12)
+                ->get(),
             'stats' => [
-                'total' => Listing::query()->published()->count(),
+                'total' => Cache::remember('stats:published_listings', 300, fn () => Listing::query()->published()->count()),
             ],
             'favoritedIds' => $favoritedIds,
             'countries' => LocationCatalog::countriesForLocale(),

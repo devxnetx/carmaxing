@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FavoriteListing;
 use App\Models\Listing;
+use App\Services\ListingSearchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,12 +12,16 @@ use Illuminate\View\View;
 
 class FavoriteController extends Controller
 {
+    public function __construct(
+        private ListingSearchService $searchService,
+    ) {}
+
     public function index(Request $request): View
     {
         $listings = Listing::query()
             ->published()
             ->whereIn('id', $request->user()->favorites()->pluck('listing_id'))
-            ->with(['brand', 'model.parent', 'images', 'region', 'features', 'company'])
+            ->with($this->searchService->gridEagerLoads())
             ->latest('published_at')
             ->paginate(12);
 

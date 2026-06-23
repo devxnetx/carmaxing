@@ -14,10 +14,12 @@ use Illuminate\Support\Collection;
 
 class ListingSearchService
 {
+    private const GRID_IMAGE_LIMIT = 4;
+
     public function search(Request $request): LengthAwarePaginator
     {
         $query = Listing::query()
-            ->with(['brand', 'model.parent', 'region', 'images', 'company', 'user', 'features'])
+            ->with($this->gridRelations())
             ->where('status', ListingStatus::Published);
 
         $this->applyFilters($query, $request);
@@ -33,6 +35,14 @@ class ListingSearchService
         };
 
         return $query->paginate(24)->withQueryString();
+    }
+
+    public function count(Request $request): int
+    {
+        $query = Listing::query()->where('status', ListingStatus::Published);
+        $this->applyFilters($query, $request);
+
+        return $query->count();
     }
 
     public function applyFilters(Builder $query, Request $request): void
@@ -119,10 +129,16 @@ class ListingSearchService
             $query->where('has_video', true);
         }
 
-        if ($featureIds = $request->input('features')) {
-            foreach ((array) $featureIds as $featureId) {
-                $query->whereHas('features', fn ($q) => $q->where('vehicle_features.id', $featureId));
-            }
+        $featureIds = array_values(array_unique(array_map('intval', (array) $request->input('features', []))));
+
+        if ($featureIds !== []) {
+            $query->whereIn($query->qualifyColumn('id'), function ($sub) use ($featureIds) {
+                $sub->select('listing_id')
+                    ->from('listing_feature')
+                    ->whereIn('vehicle_feature_id', $featureIds)
+                    ->groupBy('listing_id')
+                    ->havingRaw('COUNT(DISTINCT vehicle_feature_id) = ?', [count($featureIds)]);
+            });
         }
 
         if ($request->filled('q')) {
@@ -226,5 +242,25 @@ class ListingSearchService
         }
 
         return array_unique($ids);
+    }
+
+    /** @return array<int|string, mixed> */
+    public function gridEagerLoads(): array
+    {
+        return $this->gridRelations();
+    }
+
+    /** @return array<int|string, mixed> */
+    private function gridRelations(): array
+    {
+        return [
+            'brand',
+            'model.parent',
+            'region',
+            'images' => fn ($q) => $q->orderBy('sort_order')->limit(self::GRID_IMAGE_LIMIT),
+            'company',
+            'user',
+            'features',
+        ];
     }
 }

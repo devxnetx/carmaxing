@@ -17,7 +17,7 @@ class SavedSearchAlertService
     {
         $request = Request::create('/search', 'GET', $savedSearch->filters ?? []);
 
-        return $this->searchService->search($request)->total();
+        return $this->searchService->count($request);
     }
 
     public function notifyDue(): int

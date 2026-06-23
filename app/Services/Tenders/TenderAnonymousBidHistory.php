@@ -13,6 +13,18 @@ class TenderAnonymousBidHistory
      */
     public function anonymousNumbersFor(Tender $tender): array
     {
+        if ($tender->relationLoaded('bids')) {
+            return $tender->bids
+                ->groupBy('user_id')
+                ->map(fn ($bids) => $bids->min('created_at'))
+                ->sort()
+                ->keys()
+                ->values()
+                ->flip()
+                ->map(fn (int $index) => $index + 1)
+                ->all();
+        }
+
         return $tender->bids()
             ->selectRaw('user_id, MIN(created_at) as first_bid_at')
             ->groupBy('user_id')

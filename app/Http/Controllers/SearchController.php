@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Region;
-use App\Models\VehicleBrand;
-use App\Models\VehicleFeatureCategory;
 use App\Models\VehicleModel;
+use App\Support\CatalogCache;
 use App\Services\ListingSearchService;
 use App\Services\SearchFilterHelper;
 use App\Services\SearchHistoryService;
@@ -47,9 +46,9 @@ class SearchController extends Controller
 
         return view('search.index', [
             'listings' => $listings,
-            'brands' => VehicleBrand::query()->orderBy('name')->get(),
-            'regions' => Region::query()->orderBy('sort_order')->get(),
-            'featureCategories' => VehicleFeatureCategory::query()->with('features')->orderBy('sort_order')->get(),
+            'brands' => CatalogCache::brands(),
+            'regions' => CatalogCache::regions(),
+            'featureCategories' => CatalogCache::featureCategories(),
             'filters' => $this->filterHelper->normalizeFilters($request->all()),
             'extendedOpen' => $this->filterHelper->shouldOpenExtendedSearch($request),
             'favoritedIds' => $favoritedIds,

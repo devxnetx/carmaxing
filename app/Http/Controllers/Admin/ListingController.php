@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\ListingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
-use App\Models\Region;
-use App\Models\VehicleBrand;
-use App\Models\VehicleFeatureCategory;
 use App\Services\ListingPersistenceService;
+use App\Support\CatalogCache;
 use App\Support\LocationCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,10 +54,10 @@ class ListingController extends Controller
 
         return view('admin.listings.edit', [
             'listing' => $listing,
-            'brands' => VehicleBrand::query()->orderBy('name')->get(),
-            'regions' => Region::query()->orderBy('sort_order')->get(),
+            'brands' => CatalogCache::brands(),
+            'regions' => CatalogCache::regions(),
             'countries' => LocationCatalog::countriesForLocale(),
-            'featureCategories' => VehicleFeatureCategory::query()->with('features')->orderBy('sort_order')->get(),
+            'featureCategories' => CatalogCache::featureCategories(),
         ]);
     }
 

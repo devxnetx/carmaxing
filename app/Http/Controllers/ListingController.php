@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ListingStatus;
 use App\Models\Listing;
-use App\Models\Region;
-use App\Models\VehicleBrand;
-use App\Models\VehicleFeatureCategory;
+use App\Support\CatalogCache;
 use App\Services\ListingPersistenceService;
 use App\Services\MarketValueService;
 use App\Services\RecentlyViewedService;
@@ -105,10 +103,10 @@ class ListingController extends Controller
 
         return view('listings.form', [
             'listing' => new Listing,
-            'brands' => VehicleBrand::query()->orderBy('name')->get(),
-            'regions' => Region::query()->orderBy('sort_order')->get(),
+            'brands' => CatalogCache::brands(),
+            'regions' => CatalogCache::regions(),
             'countries' => LocationCatalog::countriesForLocale(),
-            'featureCategories' => VehicleFeatureCategory::query()->with('features')->orderBy('sort_order')->get(),
+            'featureCategories' => CatalogCache::featureCategories(),
         ]);
     }
 
@@ -120,10 +118,10 @@ class ListingController extends Controller
 
         return view('listings.form', [
             'listing' => $listing,
-            'brands' => VehicleBrand::query()->orderBy('name')->get(),
-            'regions' => Region::query()->orderBy('sort_order')->get(),
+            'brands' => CatalogCache::brands(),
+            'regions' => CatalogCache::regions(),
             'countries' => LocationCatalog::countriesForLocale(),
-            'featureCategories' => VehicleFeatureCategory::query()->with('features')->orderBy('sort_order')->get(),
+            'featureCategories' => CatalogCache::featureCategories(),
         ]);
     }
 
