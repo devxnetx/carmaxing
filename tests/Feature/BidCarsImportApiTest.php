@@ -48,6 +48,12 @@ class BidCarsImportApiTest extends TestCase
                                 'search_status' => 'active',
                                 'estimated_min' => 5000,
                                 'estimated_max' => 7000,
+                                'img' => [
+                                    'img_1' => 'https://images.bid.cars/test-1.jpg',
+                                ],
+                                'img_large' => [
+                                    'img_1' => 'https://pluto.bid.car/test-1.jpg',
+                                ],
                             ],
                         ],
                     ],
@@ -70,6 +76,7 @@ class BidCarsImportApiTest extends TestCase
         $this->assertNotNull($lot);
         $this->assertSame(2018, $lot->year);
         $this->assertSame('BMW', $lot->brand?->name);
+        $this->assertSame('https://images.bid.cars/test-1.jpg', $lot->mainImageUrl());
 
         $this->assertSame(1, BidCarsImportRun::query()->count());
     }

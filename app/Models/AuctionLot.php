@@ -99,16 +99,69 @@ class AuctionLot extends Model
         return $this->source_url ?: 'https://bid.cars/en/lot/'.$this->external_lot;
     }
 
-    public function mainImageUrl(): ?string
+    public function mainImageUrl(string $size = 'thumb'): ?string
     {
-        $images = is_array($this->images) ? $this->images : [];
-        $mainImage = $images[0] ?? null;
+        return $this->imageUrls($size)[0] ?? null;
+    }
 
-        if (! is_string($mainImage) && is_array($mainImage)) {
-            return $mainImage['url'] ?? $mainImage['src'] ?? null;
+    /** @return list<string> */
+    public function imageUrls(string $size = 'thumb'): array
+    {
+        return self::extractImageUrls(is_array($this->images) ? $this->images : [], $size);
+    }
+
+    /**
+     * @param  array<string, mixed>  $images
+     * @return list<string>
+     */
+    public static function extractImageUrls(array $images, string $size = 'thumb'): array
+    {
+        $urls = [];
+
+        if (isset($images[$size])) {
+            $urls = array_merge($urls, self::flattenImageValue($images[$size]));
         }
 
-        return is_string($mainImage) ? $mainImage : null;
+        if ($urls === [] && $size !== 'large' && isset($images['large'])) {
+            $urls = array_merge($urls, self::flattenImageValue($images['large']));
+        }
+
+        if ($urls === []) {
+            foreach ($images as $value) {
+                $urls = array_merge($urls, self::flattenImageValue($value));
+            }
+        }
+
+        return array_values(array_unique(array_filter($urls, fn (string $url) => str_starts_with($url, 'http'))));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function flattenImageValue(mixed $value): array
+    {
+        if (is_string($value) && $value !== '') {
+            return [$value];
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $urls = [];
+
+        foreach ($value as $nested) {
+            if (is_string($nested) && $nested !== '') {
+                $urls[] = $nested;
+                continue;
+            }
+
+            if (is_array($nested)) {
+                $urls = array_merge($urls, self::flattenImageValue($nested));
+            }
+        }
+
+        return $urls;
     }
 
     public function auctionTimeLabel(): ?string

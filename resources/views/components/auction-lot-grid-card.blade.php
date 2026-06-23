@@ -20,6 +20,7 @@
                         class="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
                         loading="lazy"
                         decoding="async"
+                        referrerpolicy="no-referrer"
                     >
                 @else
                     <div class="flex h-full items-center justify-center text-xs text-[var(--color-text-muted)]">{{ __('messages.no_photo') }}</div>

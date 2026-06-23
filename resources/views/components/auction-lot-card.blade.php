@@ -13,7 +13,7 @@
     <div class="flex flex-col gap-4 p-3 sm:flex-row sm:items-stretch sm:gap-5 sm:p-4">
         <a href="{{ $detailUrl }}" target="_blank" rel="noopener noreferrer" class="auction-lot-card-photo shrink-0">
             @if($imageUrl)
-                <img src="{{ $imageUrl }}" alt="{{ $vehicleName }}" class="h-full w-full object-cover" loading="lazy">
+                <img src="{{ $imageUrl }}" alt="{{ $vehicleName }}" class="h-full w-full object-cover" loading="lazy" referrerpolicy="no-referrer">
             @else
                 <div class="flex h-full items-center justify-center px-2 text-center text-xs text-[var(--color-text-muted)]">{{ __('messages.no_photo') }}</div>
             @endif
