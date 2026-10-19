@@ -6,6 +6,7 @@
         'medium' => $img->url('medium'),
         'thumb' => $img->url('thumb'),
     ])->values();
+    $variants = config('images.listing');
 @endphp
 
 <div
@@ -23,7 +24,7 @@
         <template x-if="count">
             <img
                 :src="images[active].large"
-                :srcset="`${images[active].thumb} 320w, ${images[active].medium} 800w, ${images[active].large} 1600w`"
+                :srcset="`${images[active].thumb} {{ (int) $variants['thumb']['max'] }}w, ${images[active].medium} {{ (int) $variants['medium']['max'] }}w, ${images[active].large} {{ (int) $variants['large']['max'] }}w`"
                 sizes="(max-width: 1024px) 100vw, 66vw"
                 alt="{{ $tender->vehicleName() }}"
                 width="800"

@@ -5,7 +5,9 @@ return [
 
     'listing' => [
         'thumb' => ['max' => 320, 'quality' => 82],
-        'medium' => ['max' => 800, 'quality' => 85],
+        // Card photo. The grid paints it at about 282×211, so the file stays
+        // just above that and is compressed. The ad page uses large.
+        'medium' => ['max' => 400, 'quality' => 70],
         'large' => ['max' => 1600, 'quality' => 88],
     ],
 

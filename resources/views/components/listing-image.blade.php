@@ -10,11 +10,20 @@
 ])
 
 @php
+    $variants = config('images.listing');
     $src = $image->url($size);
-    $srcset = $image->isRemote() ? null : $image->srcset();
-    $sizes = $image->isRemote() ? null : $image->sizesAttribute();
-    $w = $width ?? ($size === 'thumb' ? 320 : ($size === 'medium' ? 800 : ($image->width ?: 1600)));
-    $h = $height ?? ($size === 'thumb' ? 240 : ($size === 'medium' ? 600 : ($image->height ?: 1200)));
+    // Cards ask for one file. A srcset that also offers the 1600px photo
+    // makes the browser download that photo for a ~282px slot.
+    $srcset = ($image->isRemote() || $size !== 'large') ? null : $image->srcset();
+    $sizes = $srcset ? $image->sizesAttribute() : null;
+    $w = $width ?? match ($size) {
+        'thumb' => (int) $variants['thumb']['max'],
+        'medium' => (int) $variants['medium']['max'],
+        default => $image->width ?: (int) $variants['large']['max'],
+    };
+    $h = $height ?? ($size === 'large'
+        ? ($image->height ?: (int) round($w * 3 / 4))
+        : (int) round($w * 3 / 4));
 @endphp
 
 <img

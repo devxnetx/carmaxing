@@ -50,17 +50,18 @@ class ListingImage extends Model
         }
 
         $disk = Storage::disk('public');
+        $variants = config('images.listing');
         $parts = [];
 
         if ($this->path_thumb) {
-            $parts[] = $disk->url($this->path_thumb).' 320w';
+            $parts[] = $disk->url($this->path_thumb).' '.(int) $variants['thumb']['max'].'w';
         }
 
         if ($this->path_medium) {
-            $parts[] = $disk->url($this->path_medium).' 800w';
+            $parts[] = $disk->url($this->path_medium).' '.(int) $variants['medium']['max'].'w';
         }
 
-        $parts[] = $disk->url($this->path).' '.($this->width ?: 1600).'w';
+        $parts[] = $disk->url($this->path).' '.($this->width ?: (int) $variants['large']['max']).'w';
 
         return implode(', ', $parts);
     }
