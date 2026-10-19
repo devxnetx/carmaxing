@@ -55,6 +55,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Photo and listing links served to the phone app. Files live on the public site.
+    'public_asset_url' => env('PUBLIC_ASSET_URL', 'https://proekt-damqnovi.online'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

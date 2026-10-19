@@ -12,6 +12,7 @@ use App\Models\Tender;
 use App\Models\User;
 use App\Models\VehicleBrand;
 use App\Models\VehicleModel;
+use App\Support\CatalogCache;
 use App\Support\LocationCatalog;
 use Illuminate\Support\Facades\Cache;
 
@@ -55,6 +56,73 @@ class CatalogCountService
             $this->ttlSeconds(),
             fn () => $this->loadRegionCounts(),
         );
+    }
+
+    public function publishedBulgariaCount(): int
+    {
+        return Cache::remember(
+            'catalog:counts:listings:bulgaria',
+            $this->ttlSeconds(),
+            fn () => $this->listingsForPlace('bg', null)->count(),
+        );
+    }
+
+    public function publishedAbroadCount(): int
+    {
+        return Cache::remember(
+            'catalog:counts:listings:abroad',
+            $this->ttlSeconds(),
+            fn () => $this->listingsForPlace('abroad', null)->count(),
+        );
+    }
+
+    /**
+     * Brand and model counts for the current search place.
+     * A chosen region narrows the brand and model numbers. Region totals stay country-wide.
+     *
+     * @return array<string, mixed>
+     */
+    public function searchCounts(string $place, ?int $regionId): array
+    {
+        $place = in_array($place, ['bg', 'abroad', 'all'], true) ? $place : 'all';
+        $regionId = $regionId && $place !== 'abroad' ? $regionId : null;
+        $key = 'app-api:search-counts:'.$place.':'.($regionId ?? 0);
+
+        return Cache::remember($key, $this->ttlSeconds(), function () use ($place, $regionId) {
+            $brandCounts = $this->loadGroupedCounts('brand_id', $place, $regionId);
+            $modelCounts = $this->loadGroupedCounts('model_id', $place, $regionId);
+
+            $brands = VehicleBrand::query()
+                ->with(['models' => fn ($query) => $query->orderBy('sort_order')->orderBy('name')])
+                ->orderBy('name')
+                ->get()
+                ->map(fn (VehicleBrand $brand) => [
+                    'id' => $brand->id,
+                    'name' => $brand->name,
+                    'count' => $brandCounts[$brand->id] ?? 0,
+                    'models' => $this->modelTree($brand->models, null, $modelCounts),
+                ])
+                ->values()
+                ->all();
+
+            $regionCounts = $this->regionCounts();
+
+            return [
+                'total' => $this->listingsForPlace($place, $regionId)->count(),
+                'bulgaria_count' => $this->publishedBulgariaCount(),
+                'abroad_count' => $this->publishedAbroadCount(),
+                'regions' => CatalogCache::regions()
+                    ->map(fn ($region) => [
+                        'id' => $region->id,
+                        'name' => $region->name,
+                        'slug' => $region->slug,
+                        'count' => $regionCounts[$region->id] ?? $regionCounts[(int) $region->id] ?? 0,
+                    ])
+                    ->values()
+                    ->all(),
+                'brands' => $brands,
+            ];
+        });
     }
 
     /**
@@ -215,17 +283,94 @@ class CatalogCountService
     /** @return array<int, int> */
     private function loadRegionCounts(): array
     {
-        return Listing::query()
-            ->where('status', ListingStatus::Published)
-            ->where(function ($query) {
-                $query->whereNull('country_code')
+        return $this->intMap(
+            Listing::query()
+                ->where('status', ListingStatus::Published)
+                ->where(function ($query) {
+                    $query->whereNull('country_code')
+                        ->orWhere('country_code', LocationCatalog::BULGARIA_CODE);
+                })
+                ->whereNotNull('region_id')
+                ->selectRaw('region_id, COUNT(*) as aggregate_count')
+                ->groupBy('region_id')
+                ->pluck('aggregate_count', 'region_id'),
+        );
+    }
+
+    /** @param  \Illuminate\Support\Collection<int|string, mixed>  $counts
+     * @return array<int, int>
+     */
+    private function intMap($counts): array
+    {
+        $mapped = [];
+
+        foreach ($counts as $id => $count) {
+            $mapped[(int) $id] = (int) $count;
+        }
+
+        return $mapped;
+    }
+
+    private function listingsForPlace(string $place, ?int $regionId): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Listing::query()->where('status', ListingStatus::Published);
+
+        if ($regionId) {
+            return $query->where('region_id', $regionId);
+        }
+
+        if ($place === 'bg') {
+            return $query->where(function ($inner) {
+                $inner->whereNull('country_code')
                     ->orWhere('country_code', LocationCatalog::BULGARIA_CODE);
+            });
+        }
+
+        if ($place === 'abroad') {
+            return $query->whereNotNull('country_code')
+                ->where('country_code', '!=', LocationCatalog::BULGARIA_CODE);
+        }
+
+        return $query;
+    }
+
+    /** @return array<int, int> */
+    private function loadGroupedCounts(string $column, string $place, ?int $regionId): array
+    {
+        return $this->intMap(
+            $this->listingsForPlace($place, $regionId)
+                ->whereNotNull($column)
+                ->selectRaw($column.', COUNT(*) as aggregate_count')
+                ->groupBy($column)
+                ->pluck('aggregate_count', $column),
+        );
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, VehicleModel>  $models
+     * @param  array<int, int>  $modelCounts
+     * @return list<array<string, mixed>>
+     */
+    private function modelTree($models, ?int $parentId, array $modelCounts): array
+    {
+        return $models
+            ->where('parent_id', $parentId)
+            ->values()
+            ->map(function (VehicleModel $model) use ($models, $modelCounts) {
+                $children = $this->modelTree($models, $model->id, $modelCounts);
+                $count = ($modelCounts[$model->id] ?? 0) + array_sum(array_column($children, 'count'));
+                $node = [
+                    'id' => $model->id,
+                    'name' => $model->name,
+                    'type' => $model->type,
+                    'count' => $count,
+                ];
+                if ($children !== []) {
+                    $node['children'] = $children;
+                }
+
+                return $node;
             })
-            ->whereNotNull('region_id')
-            ->selectRaw('region_id, COUNT(*) as aggregate_count')
-            ->groupBy('region_id')
-            ->pluck('aggregate_count', 'region_id')
-            ->map(fn ($count) => (int) $count)
             ->all();
     }
 

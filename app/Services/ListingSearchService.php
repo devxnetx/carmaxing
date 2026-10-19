@@ -15,7 +15,7 @@ class ListingSearchService
 {
     private const GRID_IMAGE_LIMIT = 4;
 
-    public function search(Request $request): LengthAwarePaginator
+    public function search(Request $request, ?int $perPage = null): LengthAwarePaginator
     {
         $query = Listing::query()
             ->with($this->gridRelations())
@@ -33,7 +33,7 @@ class ListingSearchService
             default => $query->orderByDesc('published_at'),
         };
 
-        return $query->paginate(24)->withQueryString();
+        return $query->paginate($perPage ?? 24)->withQueryString();
     }
 
     public function count(Request $request): int
@@ -155,8 +155,13 @@ class ListingSearchService
     {
         $locationType = $request->input('location_type');
 
-        if ($locationType === 'abroad' && $request->filled('country_code')) {
-            $query->where('country_code', strtoupper($request->input('country_code')));
+        if ($locationType === 'abroad') {
+            if ($request->filled('country_code')) {
+                $query->where('country_code', strtoupper((string) $request->input('country_code')));
+            } else {
+                $query->whereNotNull('country_code')
+                    ->where('country_code', '!=', LocationCatalog::BULGARIA_CODE);
+            }
 
             return;
         }

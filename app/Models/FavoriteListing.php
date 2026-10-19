@@ -15,4 +15,14 @@ class FavoriteListing extends Model
     {
         return $this->belongsTo(Listing::class);
     }
+
+    /**
+     * The table's key is (user_id, listing_id). A delete by `id` removes nothing.
+     */
+    protected function setKeysForSaveQuery($query)
+    {
+        return $query
+            ->where('user_id', $this->user_id)
+            ->where('listing_id', $this->listing_id);
+    }
 }

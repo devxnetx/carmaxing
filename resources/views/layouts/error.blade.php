@@ -55,7 +55,7 @@
         </div>
     </main>
 
-    <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface-2)] py-6 text-center text-sm text-[var(--color-text-muted)]">
+    <footer class="hidden border-t border-[var(--color-border)] bg-[var(--color-surface-2)] py-6 text-center text-sm text-[var(--color-text-muted)] lg:block">
         <p>{{ config('app.name') }} — {{ __('messages.tagline') }}</p>
     </footer>
 </body>

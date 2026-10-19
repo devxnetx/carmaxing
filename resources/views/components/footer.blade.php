@@ -1,4 +1,4 @@
-<footer class="mt-auto bg-[var(--color-surface-2)]">
+<footer class="mt-auto hidden bg-[var(--color-surface-2)] lg:block">
     <div class="mx-auto max-w-7xl px-4 py-10">
         <div class="flex flex-col items-center text-center">
             <a href="{{ route('home') }}" class="inline-block hover:opacity-90" aria-label="{{ config('app.name', 'CARMAXING') }} — {{ __('messages.tagline') }}">
