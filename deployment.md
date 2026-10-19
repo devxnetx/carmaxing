@@ -62,10 +62,10 @@ rm -f /root/.ssh/github_actions
 Show the host fingerprint and copy the `SHA256:` value:
 
 ```bash
-ssh-keygen -l -f /etc/ssh/ssh_host_ed25519_key.pub
+ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub
 ```
 
-The line looks like `256 SHA256:abc... root@vps (ED25519)`. The secret is only the `SHA256:...` part.
+The line looks like `256 SHA256:abc... root@vps (ECDSA)`. The secret is only the `SHA256:...` part. The deploy action checks this ECDSA host key. The ED25519 fingerprint from `ssh_host_ed25519_key.pub` does not match.
 
 Confirm the server repo can update from GitHub. The repo is public, so no token is required:
 
@@ -142,7 +142,7 @@ The server `.env`, uploaded images under `storage/app/public`, and the MariaDB d
 
 | What you see | What to check |
 |---|---|
-| Actions fails before any server command, with an SSH or fingerprint error | Secret names, the private key including the BEGIN and END lines, and `SSH_FINGERPRINT` from `ssh_host_ed25519_key.pub`. |
+| Actions fails before any server command, with an SSH or fingerprint error | Secret names, the private key including the BEGIN and END lines, and `SSH_FINGERPRINT` from `ssh_host_ecdsa_key.pub`. The deploy action checks the ECDSA host key, so the ED25519 fingerprint does not match. |
 | `Permission denied (publickey)` | The public key line is missing from `/root/.ssh/authorized_keys`, or `chmod 600` was skipped. |
 | `fatal: not a git repository` | The workflow expects the code in `/var/www/carmaxing` with `origin` pointing at GitHub. |
 | Composer or PHP “command not found” | On the VPS, `command -v php` and `command -v composer` must print paths under `/usr/bin` or `/usr/local/bin`. |
