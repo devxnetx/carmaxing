@@ -21,7 +21,7 @@
             class="absolute left-0 top-0 flex h-full w-[min(100%,20rem)] flex-col bg-[var(--color-surface)] shadow-xl"
         >
             <div class="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
-                <x-logo size="sm" />
+                <x-logo size="sm" :show-icon="false" />
                 <button type="button" @click="open = false" class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-[var(--color-surface-3)]" aria-label="{{ __('messages.close') }}">
                     <x-icon name="x" class="h-5 w-5" />
                 </button>

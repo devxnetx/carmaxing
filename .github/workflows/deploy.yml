@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to the VPS
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          port: 22
+          command_timeout: 20m
+          script: |
+            set -eu
+            cd /var/www/carmaxing
+            php artisan down --refresh=15 || true
+            git fetch origin main
+            git reset --hard origin/main
+            export COMPOSER_ALLOW_SUPERUSER=1
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+            php artisan migrate --force
+            php artisan storage:link || true
+            php artisan config:clear
+            php artisan view:clear
+            php artisan queue:restart || true
+            php artisan up || true
+            chown -R www-data:www-data storage bootstrap/cache
+            systemctl reload apache2
+            if systemctl list-unit-files --no-legend | grep -q '^carmaxing-queue.service'; then
+              systemctl restart carmaxing-queue
+            fi

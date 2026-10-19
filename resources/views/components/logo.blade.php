@@ -1,4 +1,4 @@
-@props(['size' => 'md', 'showText' => true, 'stacked' => true])
+@props(['size' => 'md', 'showText' => true, 'stacked' => true, 'showIcon' => true])
 
 @php
     $sizes = [
@@ -10,11 +10,14 @@
 @endphp
 
 <span {{ $attributes->merge(['class' => 'inline-flex items-center gap-2']) }}>
-    <span class="{{ $s['box'] }} flex shrink-0 items-center justify-center rounded-lg bg-brand-600" aria-hidden="true">
-        <svg class="{{ $s['icon'] }} text-white" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 11h1.4l1-3a1.5 1.5 0 0 1 1.4-1h8.4a1.5 1.5 0 0 1 1.4 1l1 3H20v1.5h-1.2a1.8 1.8 0 1 1-3.6 0H8.8a1.8 1.8 0 1 1-3.6 0H5V11zm2.7 2.8a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zm8.6 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zM8.3 10.5h7.4l-.9-2.7H9.2l-.9 2.7z"/>
-        </svg>
-    </span>
+    {{-- Car SVG hidden for now. Set show-icon to bring the blue mark back. --}}
+    @if($showIcon)
+        <span class="{{ $s['box'] }} flex shrink-0 items-center justify-center rounded-lg bg-brand-600" aria-hidden="true">
+            <svg class="{{ $s['icon'] }} text-white" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 11h1.4l1-3a1.5 1.5 0 0 1 1.4-1h8.4a1.5 1.5 0 0 1 1.4 1l1 3H20v1.5h-1.2a1.8 1.8 0 1 1-3.6 0H8.8a1.8 1.8 0 1 1-3.6 0H5V11zm2.7 2.8a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zm8.6 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zM8.3 10.5h7.4l-.9-2.7H9.2l-.9 2.7z"/>
+            </svg>
+        </span>
+    @endif
     @if($showText)
         <span class="{{ $stacked ? 'leading-tight' : 'flex items-baseline gap-2' }}">
             <span class="{{ $s['title'] }} font-semibold">{{ config('app.name', 'CARMAXING') }}</span>

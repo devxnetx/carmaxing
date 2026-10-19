@@ -49,7 +49,7 @@
             <div class="flex items-center gap-2">
                 <x-mobile-nav />
                 <a href="{{ route('home') }}" class="hover:opacity-90" aria-label="{{ config('app.name', 'CARMAXING') }} — {{ __('messages.tagline') }}">
-                    <x-logo size="md" />
+                    <x-logo size="md" :show-icon="false" />
                 </a>
             </div>
 
