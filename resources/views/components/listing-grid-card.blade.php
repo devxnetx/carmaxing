@@ -42,7 +42,7 @@
                                 <x-icon name="compare" class="h-4 w-4" />
                             </button>
                         </div>
-                        <div x-data="favoriteButton('{{ $listing->slug }}', {{ $favorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }}, '{{ route('login') }}')">
+                        <div x-data="favoriteButton('{{ route('listings.favorite', $listing) }}', {{ $favorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }}, '{{ route('login') }}')">
                             <button
                                 type="button"
                                 @click.stop="toggle()"

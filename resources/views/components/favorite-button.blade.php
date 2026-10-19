@@ -8,7 +8,7 @@
 @endphp
 
 <div
-    x-data="favoriteButton('{{ $listing->slug }}', {{ $favorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }}, '{{ route('login') }}')"
+    x-data="favoriteButton('{{ route('listings.favorite', $listing) }}', {{ $favorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }}, '{{ route('login') }}')"
     {{ $attributes->class(['inline-flex']) }}
 >
     <button

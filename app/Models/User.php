@@ -16,6 +16,11 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
     protected $fillable = [
         'name',
         'email',
@@ -45,6 +50,7 @@ class User extends Authenticatable
             'subscribe_new_listings_digest' => 'boolean',
             'subscribe_news' => 'boolean',
             'subscription_prompted_at' => 'datetime',
+            'password' => 'hashed',
         ];
     }
 

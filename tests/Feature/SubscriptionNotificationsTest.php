@@ -187,6 +187,25 @@ class SubscriptionNotificationsTest extends TestCase
     }
 
     #[Test]
+    public function test_subscription_toggle_works_before_onboarding_is_complete(): void
+    {
+        $user = User::factory()->create([
+            'onboarding_completed_at' => null,
+            'subscribe_news' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->patchJson(route('subscriptions.update'), [
+                'key' => 'subscribe_news',
+                'enabled' => true,
+            ])
+            ->assertOk()
+            ->assertJson(['enabled' => true]);
+
+        $this->assertTrue($user->fresh()->subscribe_news);
+    }
+
+    #[Test]
     public function test_dashboard_archived_tab_lists_inactive_listings(): void
     {
         $user = User::factory()->create(['onboarding_completed_at' => now()]);

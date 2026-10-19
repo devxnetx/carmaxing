@@ -1,4 +1,11 @@
 import Alpine from 'alpinejs';
+import flatpickr from 'flatpickr';
+import { Bulgarian } from 'flatpickr/dist/esm/l10n/bg.js';
+import 'flatpickr/dist/flatpickr.min.css';
+import '../css/datepicker.css';
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
+import '../css/quill.css';
 
 window.Alpine = Alpine;
 
@@ -255,23 +262,323 @@ Alpine.data('listingBrandModel', (initialBrandId = null, initialModelId = null) 
     },
 }));
 
-Alpine.data('listingPhotoUpload', () => ({
-    previews: [],
+Alpine.data('listingFormWizard', (config) => ({
+    step: config.initialStep || 0,
+    labels: config.labels,
+    done: config.existing ? config.labels.map(() => true) : config.labels.map(() => false),
 
-    handleFiles(event) {
-        this.clearPreviews();
+    next() {
+        if (!this.validateStep(this.step, true)) {
+            return;
+        }
 
+        this.done[this.step] = true;
+        this.step += 1;
+        this.scrollUp();
+    },
+
+    back() {
+        if (this.step === 0) {
+            return;
+        }
+
+        this.step -= 1;
+        this.scrollUp();
+    },
+
+    go(index) {
+        if (index === this.step) {
+            return;
+        }
+
+        if (index > this.step) {
+            for (let current = this.step; current < index; current += 1) {
+                if (!this.validateStep(current, true)) {
+                    this.step = current;
+                    return;
+                }
+
+                this.done[current] = true;
+            }
+        }
+
+        this.step = index;
+        this.scrollUp();
+    },
+
+    submitForm(event) {
+        for (let current = 0; current < this.labels.length; current += 1) {
+            if (!this.validateStep(current, false)) {
+                event.preventDefault();
+                this.step = current;
+                this.$nextTick(() => this.validateStep(current, true));
+                this.scrollUp();
+                return;
+            }
+
+            this.done[current] = true;
+        }
+    },
+
+    validateStep(index, report) {
+        const section = this.$root.querySelector(`[data-step="${index}"]`);
+
+        if (!section) {
+            return true;
+        }
+
+        const fields = [...section.querySelectorAll('input, select, textarea')].filter((field) => {
+            return field.type !== 'hidden' && !field.closest('[data-skip-validation]');
+        });
+
+        for (const field of fields) {
+            if (field.disabled) {
+                if (field.required && field.value === '') {
+                    if (report) {
+                        field.disabled = false;
+                        field.reportValidity();
+                        field.disabled = true;
+                    }
+
+                    return false;
+                }
+
+                continue;
+            }
+
+            if (!field.checkValidity()) {
+                if (report) {
+                    field.reportValidity();
+                }
+
+                return false;
+            }
+        }
+
+        return true;
+    },
+
+    scrollUp() {
+        this.$nextTick(() => {
+            this.$root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    },
+}));
+
+Alpine.data('listingPhotos', (existing) => ({
+    items: existing.map((image) => ({
+        kind: 'saved',
+        id: image.id,
+        url: image.url,
+        name: '',
+    })),
+
+    addFiles(event) {
         [...(event.target.files || [])].forEach((file) => {
-            this.previews.push({
+            if (this.items.length >= 20) {
+                return;
+            }
+
+            this.items.push({
+                kind: 'new',
+                file,
                 url: URL.createObjectURL(file),
                 name: file.name,
             });
         });
+
+        event.target.value = '';
+        this.syncFiles();
     },
 
-    clearPreviews() {
-        this.previews.forEach((preview) => URL.revokeObjectURL(preview.url));
-        this.previews = [];
+    remove(index) {
+        const item = this.items[index];
+
+        if (item?.kind === 'new') {
+            URL.revokeObjectURL(item.url);
+        }
+
+        this.items.splice(index, 1);
+        this.syncFiles();
+    },
+
+    move(index, direction) {
+        const target = index + direction;
+
+        if (target < 0 || target >= this.items.length) {
+            return;
+        }
+
+        const [item] = this.items.splice(index, 1);
+        this.items.splice(target, 0, item);
+        this.syncFiles();
+    },
+
+    token(item) {
+        if (item.kind === 'saved') {
+            return `e-${item.id}`;
+        }
+
+        return `n-${this.items.filter((entry) => entry.kind === 'new').indexOf(item)}`;
+    },
+
+    syncFiles() {
+        const transfer = new DataTransfer();
+
+        this.items.filter((item) => item.kind === 'new').forEach((item) => {
+            transfer.items.add(item.file);
+        });
+
+        if (this.$refs.files) {
+            this.$refs.files.files = transfer.files;
+        }
+    },
+}));
+
+function isoToDate(value) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+
+    if (!match) {
+        return null;
+    }
+
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+Alpine.data('datePicker', (initial, locale) => ({
+    picker: null,
+    hasValue: Boolean(initial),
+    closing: false,
+
+    init() {
+        this.picker = flatpickr(this.$refs.display, {
+            defaultDate: isoToDate(initial),
+            dateFormat: 'd.m.Y',
+            allowInput: window.matchMedia('(pointer: fine)').matches,
+            disableMobile: true,
+            clickOpens: true,
+            monthSelectorType: 'dropdown',
+            locale: locale === 'bg' ? Bulgarian : { firstDayOfWeek: 1 },
+            minDate: new Date(1950, 0, 1),
+            appendTo: document.body,
+            onChange: (dates) => this.write(dates),
+            onClose: () => this.commitTyped(),
+        });
+    },
+
+    write(dates) {
+        const value = dates.length ? flatpickr.formatDate(dates[0], 'Y-m-d') : '';
+        this.$refs.value.value = value;
+        this.hasValue = value !== '';
+    },
+
+    commitTyped() {
+        if (this.closing) {
+            return;
+        }
+
+        this.closing = true;
+        const typed = this.$refs.display.value.trim();
+
+        if (typed === '') {
+            if (this.picker.selectedDates.length) {
+                this.picker.clear();
+            }
+
+            this.$refs.display.value = '';
+            this.write([]);
+            this.closing = false;
+            return;
+        }
+
+        const parsed = this.picker.parseDate(typed, 'd.m.Y');
+
+        if (!parsed || parsed.getFullYear() < 1950) {
+            this.restore();
+            this.closing = false;
+            return;
+        }
+
+        const iso = flatpickr.formatDate(parsed, 'Y-m-d');
+
+        if (iso !== this.$refs.value.value) {
+            this.picker.setDate(parsed, true);
+        }
+
+        this.closing = false;
+    },
+
+    restore() {
+        const current = isoToDate(this.$refs.value.value);
+
+        if (current) {
+            this.picker.setDate(current, false);
+            return;
+        }
+
+        this.picker.clear();
+        this.$refs.display.value = '';
+        this.write([]);
+    },
+
+    open() {
+        this.picker?.open();
+    },
+
+    clear() {
+        this.picker?.clear();
+        this.write([]);
+    },
+
+    destroy() {
+        this.picker?.destroy();
+    },
+}));
+
+Alpine.data('richTextEditor', (initial, labels) => ({
+    quill: null,
+
+    init() {
+        this.quill = new Quill(this.$refs.editor, {
+            theme: 'snow',
+            bounds: this.$el,
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    ['link'],
+                    ['clean'],
+                ],
+            },
+        });
+
+        const toolbar = this.quill.getModule('toolbar').container;
+        const title = (selector, label) => {
+            toolbar.querySelectorAll(selector).forEach((button) => {
+                button.setAttribute('aria-label', label);
+                button.setAttribute('title', label);
+            });
+        };
+        title('.ql-bold', labels.bold);
+        title('.ql-italic', labels.italic);
+        title('.ql-underline', labels.underline);
+        title('.ql-list[value="ordered"]', labels.ordered);
+        title('.ql-list[value="bullet"]', labels.bullet);
+        title('.ql-link', labels.link);
+        title('.ql-clean', labels.clear);
+
+        if (initial) {
+            this.quill.clipboard.dangerouslyPasteHTML(initial);
+        }
+
+        this.sync();
+        this.quill.on('text-change', () => this.sync());
+        this.$el.closest('form')?.addEventListener('submit', () => this.sync());
+    },
+
+    sync() {
+        const html = this.quill.getSemanticHTML();
+        this.$refs.input.value = html;
     },
 }));
 
@@ -409,7 +716,7 @@ Alpine.data('regionCityPicker', (initialRegionId = null, initialCity = '') => ({
     },
 }));
 
-Alpine.data('favoriteButton', (listingSlug, initialFavorited, isAuthenticated, loginUrl) => ({
+Alpine.data('favoriteButton', (favoriteUrl, initialFavorited, isAuthenticated, loginUrl) => ({
     favorited: initialFavorited,
     loading: false,
 
@@ -422,7 +729,7 @@ Alpine.data('favoriteButton', (listingSlug, initialFavorited, isAuthenticated, l
         this.loading = true;
 
         try {
-            const response = await fetch(`/listings/${listingSlug}/favorite`, {
+            const response = await fetch(favoriteUrl, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,

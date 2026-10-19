@@ -47,6 +47,20 @@ class Listing extends Model
         return 'slug';
     }
 
+    public function getRouteKey(): string
+    {
+        return $this->slug.'-'.$this->getKey();
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === null && is_string($value) && preg_match('/-(\d+)$/', $value, $matches) === 1) {
+            return $this->resolveRouteBindingQuery($this, $matches[1], 'id')->first();
+        }
+
+        return parent::resolveRouteBinding($value, $field);
+    }
+
     protected static function booted(): void
     {
         static::saved(function (Listing $listing) {
@@ -140,9 +154,11 @@ class Listing extends Model
             return LocationCatalog::countryName($this->country_code);
         }
 
-        $parts = array_filter([$this->city, $this->region?->name]);
+        if ($this->city && $this->region && mb_strtolower($this->city) !== mb_strtolower($this->region->name)) {
+            return $this->city.', '.$this->region->name;
+        }
 
-        return $parts ? implode(', ', $parts) : null;
+        return $this->city ?: $this->region?->name;
     }
 
     public function mapsUrl(): ?string

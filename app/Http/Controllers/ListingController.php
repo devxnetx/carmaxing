@@ -9,6 +9,7 @@ use App\Services\ListingPersistenceService;
 use App\Services\ListingShowService;
 use App\Services\RecentlyViewedService;
 use App\Support\LocationCatalog;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -20,8 +21,19 @@ class ListingController extends Controller
         private ListingPersistenceService $listingPersistence,
     ) {}
 
-    public function show(Request $request, Listing $listing): View
+    public function redirectLegacy(Listing $listing): RedirectResponse
     {
+        return redirect()->route('listings.show', $listing, 301);
+    }
+
+    public function show(Request $request, Listing $listing): View|RedirectResponse
+    {
+        $original = (string) $request->route()->originalParameter('listing');
+
+        if ($original !== $listing->getRouteKey()) {
+            return redirect()->route('listings.show', $listing, 301);
+        }
+
         $isOwner = auth()->id() === $listing->user_id;
         $isPubliclyViewable = $listing->status === ListingStatus::Published
             || $listing->status->isInactive();

@@ -5,6 +5,7 @@
     use App\Support\ListingPresenter;
 
     $descriptionText = HtmlToPlainText::sanitize($listing->description);
+    $descriptionHtml = \App\Support\RichText::sanitize($listing->description);
 @endphp
 
 @section('title', __('messages.seo_listing_title', [
@@ -77,7 +78,8 @@
 
             @php
                 $highlightSpecs = array_values(array_filter([
-                    ['label' => __('messages.year'), 'value' => $listing->month ? sprintf('%02d/%d', $listing->month, $listing->year) : $listing->year],
+                    ['label' => __('messages.year'), 'value' => $listing->year],
+                    ['label' => __('messages.location'), 'value' => $listing->locationLabel()],
                     ['label' => __('messages.mileage'), 'value' => $listing->mileage ? number_format($listing->mileage).' '.__('messages.km') : null],
                     ['label' => __('messages.fuel_type'), 'value' => ListingPresenter::fuelLabel($listing->fuel_type)],
                     ['label' => __('messages.power'), 'value' => $listing->engine_power_hp ? $listing->engine_power_hp.' '.__('messages.hp') : null],
@@ -101,10 +103,10 @@
                 </div>
             @endif
 
-            @if($descriptionText)
+            @if($descriptionHtml)
                 <div class="card p-6">
                     <h2 class="text-lg font-semibold">{{ __('messages.description') }}</h2>
-                    <div class="prose prose-sm mt-4 max-w-none whitespace-pre-line text-[var(--color-text-muted)] dark:prose-invert">{{ $descriptionText }}</div>
+                    <div class="rich-text mt-4 max-w-none text-[var(--color-text)]">{!! $descriptionHtml !!}</div>
                 </div>
             @endif
 
@@ -117,7 +119,8 @@
                             @foreach([
                                 __('messages.brand') => $listing->brand->name,
                                 __('messages.model') => $listing->model->name,
-                                __('messages.year') => $listing->month ? sprintf('%02d/%d', $listing->month, $listing->year) : $listing->year,
+                                __('messages.year') => $listing->year,
+                                __('messages.location') => $listing->locationLabel(),
                                 __('messages.mileage') => $listing->mileage ? number_format($listing->mileage).' '.__('messages.km') : null,
                                 __('messages.fuel_type') => ListingPresenter::fuelLabel($listing->fuel_type),
                                 __('messages.power') => $listing->engine_power_hp ? $listing->engine_power_hp.' '.__('messages.hp') : null,

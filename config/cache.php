@@ -125,15 +125,12 @@ return [
     | Serializable Classes
     |--------------------------------------------------------------------------
     |
-    | This value determines the classes that can be unserialized from cache
-    | storage. By default, no PHP classes will be unserialized from your
-    | cache to prevent gadget chain attacks if your APP_KEY is leaked.
+    | Listing pages and catalog responses store Eloquent models in the cache.
+    | `true` allows those objects to be restored. An array allow-list turns
+    | every cached model into an incomplete object and crashes the page.
     |
     */
 
-    'serializable_classes' => [
-        stdClass::class,
-        Illuminate\Support\Collection::class,
-    ],
+    'serializable_classes' => true,
 
 ];

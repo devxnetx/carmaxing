@@ -17,7 +17,7 @@ class ComparePresenter
                     ['label' => __('messages.price_from'), 'value' => fn (Listing $l) => self::priceLabel($l)],
                     ['label' => __('messages.brand'), 'value' => fn (Listing $l) => $l->brand->name],
                     ['label' => __('messages.model'), 'value' => fn (Listing $l) => $l->model->name],
-                    ['label' => __('messages.year'), 'value' => fn (Listing $l) => $l->month ? sprintf('%02d/%d', $l->month, $l->year) : (string) $l->year],
+                    ['label' => __('messages.year'), 'value' => fn (Listing $l) => (string) $l->year],
                     ['label' => __('messages.mileage'), 'value' => fn (Listing $l) => $l->mileage ? number_format($l->mileage).' '.__('messages.km') : null],
                     ['label' => __('messages.fuel_type'), 'value' => fn (Listing $l) => ListingPresenter::fuelLabel($l->fuel_type)],
                     ['label' => __('messages.power'), 'value' => fn (Listing $l) => $l->engine_power_hp ? $l->engine_power_hp.' '.__('messages.hp') : null],

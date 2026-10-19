@@ -82,6 +82,29 @@
         @apply mb-1 block text-sm font-medium text-[var(--color-text-muted)];
     }
 
+    .rich-text p {
+        margin: 0.5rem 0;
+    }
+
+    .rich-text ul,
+    .rich-text ol {
+        margin: 0.5rem 0;
+        padding-left: 1.25rem;
+    }
+
+    .rich-text ul {
+        list-style: disc;
+    }
+
+    .rich-text ol {
+        list-style: decimal;
+    }
+
+    .rich-text a {
+        color: var(--color-brand-600);
+        text-decoration: underline;
+    }
+
     .badge {
         @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
     }

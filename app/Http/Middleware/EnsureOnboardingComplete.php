@@ -12,8 +12,12 @@ class EnsureOnboardingComplete
     {
         $user = $request->user();
 
-        if ($user && $user->needsOnboarding() && ! $request->routeIs('onboarding.*', 'logout', 'locale.*')) {
-            return redirect()->route('onboarding.show');
+        if ($user && $user->needsOnboarding() && ! $request->routeIs('onboarding.*', 'logout', 'locale.*', 'subscriptions.*')) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Onboarding is not complete.'], 403);
+            }
+
+            return redirect()->route('onboarding.show', [], $request->isMethod('GET') || $request->isMethod('HEAD') ? 302 : 303);
         }
 
         return $next($request);

@@ -44,6 +44,22 @@ class AdminPanelTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_admin_can_sign_in_with_password_and_open_the_panel(): void
+    {
+        $admin = User::factory()->admin()->create([
+            'email' => 'admin@carmaxing.local',
+            'password' => '123456',
+        ]);
+
+        $this->post(route('login.store'), [
+            'email' => 'admin@carmaxing.local',
+            'password' => '123456',
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticatedAs($admin);
+        $this->get(route('admin.dashboard'))->assertOk();
+    }
+
     public function test_admin_can_view_dashboard(): void
     {
         $admin = User::factory()->admin()->create();

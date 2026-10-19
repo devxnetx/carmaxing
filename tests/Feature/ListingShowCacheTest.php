@@ -36,7 +36,13 @@ class ListingShowCacheTest extends TestCase
     {
         $listing = $this->createListing(ListingStatus::Published, price: 10000);
 
+        $this->assertSame(
+            url('/avtomobil/'.$listing->slug.'-'.$listing->id),
+            route('listings.show', $listing),
+        );
+
         $this->get(route('listings.show', $listing))->assertOk()->assertSee('10,000');
+        $this->get('/listings/'.$listing->slug)->assertRedirect(route('listings.show', $listing));
 
         $listing->update(['price' => 15000]);
 

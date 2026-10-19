@@ -70,6 +70,7 @@ Route::post('/cookie-consent', [CookieConsentController::class, 'store'])->name(
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1')->name('login.store');
     Route::get('/auth/{provider}', [SocialAuthController::class, 'redirect'])->name('auth.redirect');
     Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('auth.callback');
 });
@@ -79,6 +80,10 @@ Route::post('/logout', [SocialAuthController::class, 'logout'])->middleware('aut
 Route::middleware('auth')->group(function () {
     Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding.show');
     Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
+
+    Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::patch('/subscriptions', [SubscriptionController::class, 'update'])->name('subscriptions.update');
+    Route::post('/subscriptions/dismiss-prompt', [SubscriptionController::class, 'dismissPrompt'])->name('subscriptions.dismiss-prompt');
 });
 
 Route::middleware(['auth', 'onboarding'])->group(function () {
@@ -94,14 +99,10 @@ Route::middleware(['auth', 'onboarding'])->group(function () {
 
     Route::get('/listings/create', [ListingController::class, 'create'])->name('listings.create');
     Route::post('/listings', [ListingController::class, 'store'])->name('listings.store');
-    Route::get('/listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
-    Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
-    Route::post('/listings/{listing}/archive', [ListingController::class, 'archive'])->name('listings.archive');
-    Route::post('/listings/{listing}/unarchive', [ListingController::class, 'unarchive'])->name('listings.unarchive');
-
-    Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
-    Route::patch('/subscriptions', [SubscriptionController::class, 'update'])->name('subscriptions.update');
-    Route::post('/subscriptions/dismiss-prompt', [SubscriptionController::class, 'dismissPrompt'])->name('subscriptions.dismiss-prompt');
+    Route::get('/listings/{listing:slug}/edit', [ListingController::class, 'edit'])->name('listings.edit');
+    Route::put('/listings/{listing:slug}', [ListingController::class, 'update'])->name('listings.update');
+    Route::post('/listings/{listing:slug}/archive', [ListingController::class, 'archive'])->name('listings.archive');
+    Route::post('/listings/{listing:slug}/unarchive', [ListingController::class, 'unarchive'])->name('listings.unarchive');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
@@ -139,12 +140,24 @@ Route::middleware('tenders.enabled')->prefix('tenders')->name('tenders.')->group
     Route::get('/{tender:slug}', [TenderController::class, 'show'])->name('show');
 });
 
-Route::get('/listings/{listing:slug}', [ListingController::class, 'show'])
-    ->where('listing', '^(?!create$|edit$).+')
+Route::get('/avtomobil/{listing}', [ListingController::class, 'show'])
+    ->where('listing', '.+-\d+')
     ->name('listings.show');
-Route::post('/listings/{listing:slug}/favorite', [FavoriteController::class, 'toggle'])->name('listings.favorite');
-Route::post('/listings/{listing:slug}/contact', [ListingContactController::class, 'store'])->middleware('auth')->name('listings.contact');
-Route::post('/listings/{listing:slug}/report', [ListingReportController::class, 'store'])->name('listings.report');
-Route::post('/listings/{listing:slug}/phone-click', [ListingPhoneClickController::class, 'store'])->name('listings.phone-click');
+Route::post('/avtomobil/{listing}/favorite', [FavoriteController::class, 'toggle'])
+    ->where('listing', '.+-\d+')
+    ->name('listings.favorite');
+Route::post('/avtomobil/{listing}/contact', [ListingContactController::class, 'store'])
+    ->middleware('auth')
+    ->where('listing', '.+-\d+')
+    ->name('listings.contact');
+Route::post('/avtomobil/{listing}/report', [ListingReportController::class, 'store'])
+    ->where('listing', '.+-\d+')
+    ->name('listings.report');
+Route::post('/avtomobil/{listing}/phone-click', [ListingPhoneClickController::class, 'store'])
+    ->where('listing', '.+-\d+')
+    ->name('listings.phone-click');
+
+Route::get('/listings/{listing:slug}', [ListingController::class, 'redirectLegacy'])
+    ->where('listing', '^(?!create$|edit$).+');
 
 require __DIR__.'/admin.php';

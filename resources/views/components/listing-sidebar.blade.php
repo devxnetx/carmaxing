@@ -77,7 +77,7 @@
                         <x-icon name="compare" class="h-4 w-4" /> {{ __('messages.compare_add') }}
                     </button>
                 </div>
-                <div x-data="favoriteButton('{{ $listing->slug }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }}, '{{ route('login') }}')">
+                <div x-data="favoriteButton('{{ route('listings.favorite', $listing) }}', {{ $isFavorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }}, '{{ route('login') }}')">
                     <button type="button" @click="toggle()" class="btn-secondary text-xs" :class="favorited ? 'text-red-500' : ''">
                         <x-icon name="heart" variant="solid" class="h-4 w-4" x-show="favorited" x-cloak />
                         <x-icon name="heart" class="h-4 w-4" x-show="!favorited" />

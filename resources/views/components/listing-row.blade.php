@@ -116,7 +116,7 @@
                     </button>
                 </div>
                 <div
-                    x-data="favoriteButton('{{ $listing->slug }}', {{ $favorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }}, '{{ route('login') }}')"
+                    x-data="favoriteButton('{{ route('listings.favorite', $listing) }}', {{ $favorited ? 'true' : 'false' }}, {{ auth()->check() ? 'true' : 'false' }}, '{{ route('login') }}')"
                     class="flex flex-col items-center"
                 >
                     <button

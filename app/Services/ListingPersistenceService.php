@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Listing;
 use App\Models\ListingPriceChange;
 use App\Models\User;
-use App\Support\HtmlToPlainText;
 use App\Support\LocationCatalog;
+use App\Support\RichText;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -20,6 +20,7 @@ class ListingPersistenceService
 
     public function persist(Listing $listing, Request $request, ?User $actingUser = null): Listing
     {
+        $this->prepareLocation($request);
         $data = $request->validate($this->rules($request));
 
         $data['price_on_request'] = $request->boolean('price_on_request');
@@ -43,7 +44,8 @@ class ListingPersistenceService
 
         unset($data['location_type']);
         $data = array_merge($data, $location);
-        $data['description'] = HtmlToPlainText::sanitize($data['description'] ?? null);
+        $data['month'] = null;
+        $data['description'] = RichText::sanitize($data['description'] ?? null);
 
         $previousPrice = $listing->exists && ! $listing->price_on_request ? (int) $listing->price : null;
 
@@ -70,8 +72,7 @@ class ListingPersistenceService
 
         $listing->features()->sync($data['features'] ?? []);
 
-        $this->removeListingImages($listing, $request->input('remove_images', []));
-        $this->storeListingImages($listing, $request->file('images', []));
+        $this->syncListingImages($listing, $request);
 
         $this->listingShow->forget($listing);
 
@@ -95,7 +96,6 @@ class ListingPersistenceService
             'currency' => ['required', 'in:EUR,BGN,USD'],
             'price_negotiable' => ['boolean'],
             'year' => ['required', 'integer', 'min:1950', 'max:'.(date('Y') + 1)],
-            'month' => ['nullable', 'integer', 'min:1', 'max:12'],
             'mileage' => ['nullable', 'integer', 'min:0'],
             'fuel_type' => ['nullable', 'string'],
             'engine_power_hp' => ['nullable', 'integer'],
@@ -133,7 +133,97 @@ class ListingPersistenceService
             'images.*' => ['image', 'max:5120'],
             'remove_images' => ['nullable', 'array'],
             'remove_images.*' => ['integer', 'exists:listing_images,id'],
+            'photo_order' => ['nullable', 'array', 'max:20'],
+            'photo_order.*' => ['string', 'max:20'],
         ];
+    }
+
+    private function prepareLocation(Request $request): void
+    {
+        if ($request->input('location_type') !== 'bg') {
+            return;
+        }
+
+        $city = (string) $request->input('city', '');
+
+        if (! str_contains($city, '::')) {
+            return;
+        }
+
+        [$regionId, $name] = explode('::', $city, 2);
+        $request->merge([
+            'region_id' => (int) $regionId,
+            'city' => $name,
+        ]);
+    }
+
+    private function syncListingImages(Listing $listing, Request $request): void
+    {
+        $tokens = array_values(array_filter(
+            $request->input('photo_order', []),
+            fn ($token) => is_string($token) && $token !== '',
+        ));
+        $files = array_values(array_filter($request->file('images', []) ?? []));
+        $ordered = $request->boolean('photo_order_submitted')
+            && ($tokens !== [] || $request->boolean('photos_cleared'));
+
+        if (! $ordered) {
+            $this->removeListingImages($listing, $request->input('remove_images', []));
+            $this->storeListingImages($listing, $files);
+
+            return;
+        }
+
+        if ($tokens === []) {
+            $listing->images()->get()->each(function ($image) {
+                $image->deleteFiles();
+                $image->delete();
+            });
+            $this->storeListingImages($listing, $files);
+
+            return;
+        }
+
+        $keptIds = [];
+
+        foreach ($tokens as $token) {
+            if (preg_match('/^e-(\d+)$/', (string) $token, $matches) === 1) {
+                $keptIds[] = (int) $matches[1];
+            }
+        }
+
+        $listing->images()->whereNotIn('id', $keptIds === [] ? [0] : $keptIds)->get()->each(function ($image) {
+            $image->deleteFiles();
+            $image->delete();
+        });
+
+        $uploaded = [];
+
+        foreach ($files as $index => $file) {
+            $uploaded[$index] = $this->storeOneListingImage($listing, $file, 0, false);
+        }
+
+        $position = 1;
+
+        foreach ($tokens as $token) {
+            $image = null;
+
+            if (preg_match('/^e-(\d+)$/', (string) $token, $matches) === 1) {
+                $image = $listing->images()->whereKey((int) $matches[1])->first();
+            } elseif (preg_match('/^n-(\d+)$/', (string) $token, $matches) === 1) {
+                $image = $uploaded[(int) $matches[1]] ?? null;
+            }
+
+            if (! $image) {
+                continue;
+            }
+
+            $image->update([
+                'sort_order' => $position,
+                'is_primary' => $position === 1,
+            ]);
+            $position++;
+        }
     }
 
     private function storeListingImages(Listing $listing, array $files): void
@@ -147,26 +237,36 @@ class ListingPersistenceService
                 continue;
             }
 
-            try {
-                $processed = $this->imageProcessor->processUpload(
-                    $file,
-                    "listings/{$listing->id}",
-                    config('images.listing'),
-                );
-            } catch (\Throwable) {
-                continue;
-            }
-
             $sortOrder++;
+            $created = $this->storeOneListingImage($listing, $file, $sortOrder, $needsPrimary && $isFirstNew);
 
-            $listing->images()->create([
-                ...$processed,
-                'sort_order' => $sortOrder,
-                'is_primary' => $needsPrimary && $isFirstNew,
-            ]);
-
-            $isFirstNew = false;
+            if ($created) {
+                $isFirstNew = false;
+            }
         }
+    }
+
+    private function storeOneListingImage(Listing $listing, mixed $file, int $sortOrder, bool $primary): ?\App\Models\ListingImage
+    {
+        if (! $file) {
+            return null;
+        }
+
+        try {
+            $processed = $this->imageProcessor->processUpload(
+                $file,
+                "listings/{$listing->id}",
+                config('images.listing'),
+            );
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $listing->images()->create([
+            ...$processed,
+            'sort_order' => $sortOrder,
+            'is_primary' => $primary,
+        ]);
     }
 
     private function removeListingImages(Listing $listing, array $imageIds): void

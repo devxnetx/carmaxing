@@ -3,7 +3,7 @@
 @section('title', __('messages.onboarding_title'))
 
 @section('content')
-<div class="mx-auto max-w-2xl px-4 py-12" x-data="{ type: 'private' }">
+<div class="mx-auto max-w-2xl px-4 py-12" x-data="{ type: @js(old('account_type', 'private')) }">
     <div class="text-center">
         <h1 class="text-3xl font-bold">{{ __('messages.onboarding_title') }}</h1>
         <p class="mt-2 text-[var(--color-text-muted)]">{{ __('messages.onboarding_subtitle') }}</p>
@@ -27,18 +27,18 @@
 
         <div x-show="type === 'private'" class="card p-5">
             <label class="label">{{ __('messages.phone') }} *</label>
-            <x-phone-input name="phone" :value="old('phone')" :required="true" />
+            <x-phone-input name="phone" :value="old('phone')" :required="true" x-bind:disabled="type !== 'private'" />
         </div>
 
         <div x-show="type === 'company'" class="card space-y-4 p-5">
             <div>
                 <label class="label">{{ __('messages.company_name') }} *</label>
-                <input type="text" name="company_name" class="input" value="{{ old('company_name') }}">
+                <input type="text" name="company_name" class="input" value="{{ old('company_name') }}" :disabled="type !== 'company'" :required="type === 'company'">
                 @error('company_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label class="label">{{ __('messages.phone') }} *</label>
-                <x-phone-input name="company_phone" :value="old('company_phone')" :required="true" />
+                <x-phone-input name="company_phone" :value="old('company_phone')" :required="true" x-bind:disabled="type !== 'company'" />
             </div>
             <div x-data="regionCityPicker(@js(old('region_id')), @js(old('company_city')))" x-init="init()">
                 <div class="grid gap-4 sm:grid-cols-2">

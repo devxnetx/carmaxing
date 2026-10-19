@@ -11,7 +11,7 @@
     $localValue = PhoneNumber::localPart(old($name, $value));
 @endphp
 
-<div {{ $attributes->merge(['class' => '']) }}>
+<div {{ $attributes->only('class') }}>
     <div class="flex">
         <span class="inline-flex shrink-0 items-center rounded-l-lg border border-r-0 border-[var(--color-border)] bg-[var(--color-surface-3)] px-3 text-sm font-medium text-[var(--color-text-muted)]">
             +359
@@ -28,6 +28,7 @@
             pattern="[0-9]{9}"
             placeholder="888123456"
             @required($required)
+            {{ $attributes->except('class') }}
         >
     </div>
     @if($showHint)
