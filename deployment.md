@@ -8,18 +8,9 @@ GitHub Actions is what deploys. This PC does not SSH to the VPS. When you ask fo
 
 Do the server and GitHub secret steps before the first push that contains `.github/workflows/deploy.yml`. A push without those secrets fails in Actions and leaves the site as it is.
 
-host fingerprint:
-256 SHA256:jNuQ2pURUIp8+djzuHofNMPDr4m/yjzqS3p5PHau8+Q root@vmi3676998 (ED25519)
+The deploy private key belongs only in the GitHub Actions secret `SSH_PRIVATE_KEY`. Do not paste it into this file. This repository is public.
 
-SHA256:k31sSbX5IldheRhQdpz/SW2ricgfEkYsVFR8laodcbM github-actions-deploy
-
------BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-QyNTUxOQAAACD9v70IevLqPfxIzGPN6z08I+c2nXl7Qt/P9Y3Ayf5M6AAAAJiZZsVRmWbF
-UQAAAAtzc2gtZWQyNTUxOQAAACD9v70IevLqPfxIzGPN6z08I+c2nXl7Qt/P9Y3Ayf5M6A
-AAAEDLs/5MCU2aRAwS0LOMNr/cQwd3LCK5RLyQD023jJerJP2/vQh68uo9/EjMY83rPTwj
-5zadeXtC38/1jcDJ/kzoAAAAFWdpdGh1Yi1hY3Rpb25zLWRlcGxveQ==
------END OPENSSH PRIVATE KEY-----
+The host fingerprint the action accepts is the ECDSA key, not the ED25519 key. The working value is `SHA256:+gDl7onyovPLHaj+I3LPG/cqWgP2q6Pnc7kPWk92TnM`.
 
 ## What you need
 
