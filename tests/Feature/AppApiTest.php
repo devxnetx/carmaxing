@@ -76,6 +76,7 @@ class AppApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.description', 'Clean car')
             ->assertJsonPath('data.seller.name', 'Ratola Motors')
+            ->assertJsonPath('data.seller.id', $company->id)
             ->assertJsonPath('data.seller.phone', '0888000111')
             ->assertJsonPath('data.vin', 'WBA12345678901234');
 
@@ -262,6 +263,97 @@ class AppApiTest extends TestCase
         $this->getJson('/api/app/listings?location_type=abroad&per_page=5')
             ->assertOk()
             ->assertJsonPath('meta.total', 1);
+    }
+
+    #[Test]
+    public function test_company_profile_lists_published_ads_and_dealer_info(): void
+    {
+        $this->seed(\Database\Seeders\CatalogSeeder::class);
+
+        $dealer = User::factory()->create();
+        $region = Region::query()->where('slug', 'sofia-grad')->firstOrFail();
+        $company = Company::query()->create([
+            'user_id' => $dealer->id,
+            'name' => 'Ratola Motors',
+            'slug' => 'ratola-profile',
+            'description' => '<p>Семеен дилър</p>',
+            'logo' => 'companies/ratola/logo.webp',
+            'cover_image' => 'companies/ratola/cover.webp',
+            'phone' => '0888000111',
+            'email' => 'sales@ratola.test',
+            'website' => 'https://ratola.example',
+            'address' => 'бул. България 1',
+            'city' => 'София',
+            'region_id' => $region->id,
+            'member_since_year' => 2014,
+            'is_verified' => true,
+            'verified_at' => now(),
+        ]);
+
+        $brands = VehicleBrand::query()->whereHas('models')->orderBy('name')->take(2)->get();
+        $firstModel = VehicleModel::query()->where('brand_id', $brands[0]->id)->firstOrFail();
+        $secondModel = VehicleModel::query()->where('brand_id', $brands[1]->id)->firstOrFail();
+
+        $expensive = $this->createListing(ListingStatus::Published, 'Expensive car', [
+            'user_id' => $dealer->id,
+            'company_id' => $company->id,
+            'brand_id' => $brands[0]->id,
+            'model_id' => $firstModel->id,
+            'price' => 20000,
+            'ad_number' => 1042,
+        ]);
+        $cheap = $this->createListing(ListingStatus::Published, 'Cheap car', [
+            'user_id' => $dealer->id,
+            'company_id' => $company->id,
+            'brand_id' => $brands[1]->id,
+            'model_id' => $secondModel->id,
+            'price' => 9000,
+            'ad_number' => 1043,
+        ]);
+        $this->createListing(ListingStatus::Draft, 'Hidden dealer car', [
+            'user_id' => $dealer->id,
+            'company_id' => $company->id,
+            'ad_number' => 1044,
+        ]);
+
+        $payload = $this->getJson('/api/app/companies/'.$company->id)
+            ->assertOk()
+            ->assertJsonPath('company.name', 'Ratola Motors')
+            ->assertJsonPath('company.description', 'Семеен дилър')
+            ->assertJsonPath('company.email', 'sales@ratola.test')
+            ->assertJsonPath('company.phone', '0888000111')
+            ->assertJsonPath('company.city', 'София')
+            ->assertJsonPath('company.region.id', $region->id)
+            ->assertJsonPath('company.member_since_year', 2014)
+            ->assertJsonPath('company.is_verified', true)
+            ->assertJsonPath('company.listings_count', 2)
+            ->assertJsonPath('listings.meta.total', 2)
+            ->json();
+
+        $this->assertStringContainsString('https://proekt-damqnovi.online/storage/', (string) $payload['company']['logo_url']);
+        $this->assertStringContainsString('cover.webp', (string) $payload['company']['cover_url']);
+        $this->assertStringStartsWith('https://proekt-damqnovi.online/dealers/', (string) $payload['company']['web_url']);
+        $this->assertCount(2, $payload['brands']);
+
+        $ids = collect($payload['listings']['data'])->pluck('id');
+        $this->assertTrue($ids->contains($expensive->id));
+        $this->assertTrue($ids->contains($cheap->id));
+
+        $this->getJson('/api/app/companies/'.$company->id.'?brand_id='.$brands[1]->id)
+            ->assertOk()
+            ->assertJsonPath('listings.meta.total', 1)
+            ->assertJsonPath('listings.data.0.id', $cheap->id)
+            ->assertJsonPath('company.listings_count', 1);
+
+        $this->getJson('/api/app/companies/'.$company->id.'?ad_number=1042')
+            ->assertOk()
+            ->assertJsonPath('listings.data.0.id', $expensive->id);
+
+        $this->getJson('/api/app/companies/'.$company->id.'?sort=price_asc')
+            ->assertOk()
+            ->assertJsonPath('listings.data.0.id', $cheap->id);
+
+        $this->getJson('/api/app/companies/999999')->assertNotFound();
     }
 
     /** @param  array<string, mixed>  $extra */

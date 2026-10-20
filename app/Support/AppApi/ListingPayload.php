@@ -136,6 +136,7 @@ class ListingPayload
             ])->values()->all(),
             'seller' => [
                 'type' => $listing->company_id ? 'company' : 'private',
+                'id' => $listing->company_id,
                 'name' => $listing->company?->name,
                 'phone' => $listing->contactPhone(),
                 'logo_url' => PublicUrl::storage($listing->company?->logoUrl()),
