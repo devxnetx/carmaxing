@@ -356,6 +356,62 @@ class AppApiTest extends TestCase
         $this->getJson('/api/app/companies/999999')->assertNotFound();
     }
 
+    #[Test]
+    public function test_dealers_directory_filters_by_city_and_returns_map_markers(): void
+    {
+        $this->seed(\Database\Seeders\CatalogSeeder::class);
+
+        $region = Region::query()->where('slug', 'sofia-grad')->firstOrFail();
+        $sofia = $this->createDealer('Sofia Motors', $region->id, 'София', 42.7, 23.32);
+        $this->createDealer('Bankso Cars', $region->id, 'Банско', null, null);
+
+        $this->getJson('/api/app/dealers')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 2)
+            ->assertJsonFragment(['name' => 'Sofia Motors'])
+            ->assertJsonFragment(['name' => 'Bankso Cars']);
+
+        $this->getJson('/api/app/dealers?region_id='.$region->id.'&city='.rawurlencode('София'), [
+            'Accept-Language' => 'bg',
+        ])
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $sofia->id)
+            ->assertJsonPath('data.0.city', 'София')
+            ->assertJsonPath('data.0.location', 'София, София-град');
+
+        $cities = $this->getJson('/api/app/dealers/cities?region_id='.$region->id)
+            ->assertOk()
+            ->json('cities');
+        $this->assertSame(1, collect($cities)->firstWhere('name', 'София')['count']);
+
+        $markers = $this->getJson('/api/app/dealers/map?city='.rawurlencode('София'))
+            ->assertOk()
+            ->assertJsonPath('center.zoom', 8)
+            ->json('markers');
+        $this->assertCount(1, $markers);
+        $this->assertSame($sofia->id, $markers[0]['id']);
+        $this->assertEqualsWithDelta(42.7, $markers[0]['lat'], 0.001);
+        $this->assertEqualsWithDelta(23.32, $markers[0]['lng'], 0.001);
+
+        $this->getJson('/api/app/dealers/cities?region_id=999999')->assertNotFound();
+    }
+
+    private function createDealer(string $name, int $regionId, string $city, ?float $lat, ?float $lng): Company
+    {
+        $owner = User::factory()->create();
+
+        return Company::query()->create([
+            'user_id' => $owner->id,
+            'name' => $name,
+            'slug' => Str::slug($name).'-'.Str::lower(Str::random(4)),
+            'region_id' => $regionId,
+            'city' => $city,
+            'latitude' => $lat,
+            'longitude' => $lng,
+        ]);
+    }
+
     /** @param  array<string, mixed>  $extra */
     private function createListing(ListingStatus $status, string $title, array $extra = []): Listing
     {

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\BidCarsImportApiController;
 use App\Http\Controllers\Api\ListingApiController;
 use App\Http\Controllers\AppApi\AuthController as AppAuthController;
 use App\Http\Controllers\AppApi\CatalogController as AppCatalogController;
+use App\Http\Controllers\AppApi\DealerController as AppDealerController;
 use App\Http\Controllers\AppApi\CompanyController as AppCompanyController;
 use App\Http\Controllers\AppApi\FavoriteController as AppFavoriteController;
 use App\Http\Controllers\AppApi\ListingController as AppListingController;
@@ -28,6 +29,9 @@ Route::prefix('app')->middleware([SetLocale::class, 'throttle:60,1'])->group(fun
     Route::get('/catalog/counts', [AppCatalogController::class, 'counts']);
     Route::get('/catalog', [AppCatalogController::class, 'show']);
     Route::get('/companies/{id}', [AppCompanyController::class, 'show']);
+    Route::get('/dealers/cities', [AppDealerController::class, 'cities']);
+    Route::get('/dealers/map', [AppDealerController::class, 'map']);
+    Route::get('/dealers', [AppDealerController::class, 'index']);
     Route::get('/listings', [AppListingController::class, 'index']);
     Route::get('/listings/{id}', [AppListingController::class, 'show']);
     Route::post('/listings/{id}/phone', [AppListingController::class, 'phoneClick']);
